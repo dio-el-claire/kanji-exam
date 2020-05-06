@@ -1,7 +1,7 @@
 <template>
 <div class="kanji-list-item">
   <h3>{{kanji.kanji}}</h3>
-  <span v-for="(word, i) in kanji.meanings" :key="i">{{word}} </span>
+  <span>{{kanji.getMeaning()}} </span>
 </div>
 </template>
 

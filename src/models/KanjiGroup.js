@@ -1,5 +1,6 @@
 import { Collection } from 'vue-mc'
 import Kanji from './Kanji'
+import CONFIG from '../config';
 
 export default class KanjiGroup extends Collection {
   label = ''
@@ -39,11 +40,10 @@ export default class KanjiGroup extends Collection {
       this.createRequest(config)
         .send()
         .then(response => {
-          response.getData().forEach(id => {
-            const kanji = new Kanji({ kanji: id })
-            kanji.fetch()
-            this.add(kanji)
-          });
+          this.add(response.getData().map(id => new Kanji({ kanji: id })));
+          // response.getData().forEach(id => {
+          //   this.add(new Kanji({ kanji: id }));
+          // });
           this.loaded = true
           resolve(this.models)
         })
@@ -57,26 +57,22 @@ export default class KanjiGroup extends Collection {
 
   }
 
+  getPage(page) {
+    page = parseInt(page);
+    console.log('getPage', page)
+    if (!(Number.isInteger(page) && page > 0)) {
+      return [];
+    }
+    const limit = CONFIG.ITEMS_PER_PAGE;
+    const offset = limit * (page - 1);
+    return this.models.slice(offset, offset + limit).map(model => {
+      model.load();
+      return model;
+    });
+  }
+
   findKanji(kanji) {
     return this.models.find(model => model.kanji === kanji);
   }
 
-  fetchGrade(grade) {
-    const config = {
-      url: `https://kanjiapi.dev/v1/kanji/grade-${grade}`,
-      method: 'GET'
-    }
-
-    return this.createRequest(config)
-              .send()
-              .then(response => {
-                response.getData().forEach(k => {
-                  this.createRequest({url: `https://kanjiapi.dev/v1/kanji/${k}`, method: 'GET'}).send().then(resp => {
-                    console.log(resp.getData())
-                    this.add(resp.getData())
-                    console.log(this.length)
-                  })
-                })
-              })
-  }
 }

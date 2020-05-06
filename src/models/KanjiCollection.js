@@ -1,16 +1,19 @@
 import KanjiGroup from './KanjiGroup'
+import cache from '../cache';
 
 class KanjiCollection {
   groups = []
 
+  _groupsMap = {}
+
   constructor() {
-    this.groups= [1, 2, 3, 4, 5, 6, 8, 'all'].map(key => {
+    cache.getGroups();
+    
+    this.groups= [1, 2, 3, 4, 5, 6, 8, 'joyo', 'jinmeiyo', 'all'].map(key => {
       let label = key > 0 ? `grade-${key}` : key;
-      return { label, collection: new KanjiGroup(label) }
-    })
-    this._groupsMap = {}
-    this.groups.forEach(group => {
-      this._groupsMap[group.label] = group;
+      const group = new KanjiGroup(label);
+      this._groupsMap[label] = group;
+      return group;
     })
   }
 
@@ -24,35 +27,24 @@ class KanjiCollection {
   }
 
   loadGroup(group) {
-    return new Promise((resolve, reject) => {
+    if (!group) {
+      throw new Error('Group required');
+    }
+    if (group.loaded) {
+      return;
+    }
 
-      if (!group) {
-        return reject(`group required`)
+    group.fetch().then(models => {
+      if (group.label === 'all') {
+        console.log('from all')
+        models.filter(model => model.grade).forEach(model => {
+          let label = `grade-${model.grade}`;
+          this._groupsMap[label].add(model);
+        })
+      } else {
+        console.log('to all')
+        this._groupsMap.all.add(models)
       }
-
-      const collection = group.collection;
-
-      if (collection.loaded) {
-        return resolve(group);
-      }
-
-      const promise = collection.fetch()
-
-      promise.then(models => {
-        resolve(group)
-
-        if (group.label === 'all') {
-          console.log('from all')
-          models.filter(model => model.grade).forEach(model => {
-            let label = `grade-${model.grade}`;
-            this._groupsMap[label].collection.add(model);
-          })
-        } else {
-          console.log('to all')
-          this._groupsMap.all.collection.add(models)
-        }
-      })
-      return promise;
     })
   }
 }

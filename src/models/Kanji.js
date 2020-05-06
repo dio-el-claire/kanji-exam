@@ -1,6 +1,8 @@
 import { Model } from 'vue-mc'
 
 export default class Kanji extends Model {
+  loaded = false
+
   defaults() {
     return {
       kanji: '',
@@ -23,6 +25,13 @@ export default class Kanji extends Model {
     return {
       identifier: 'kanji'
     }
+  }
+
+  load() {
+    if (!this.loaded) {
+      this.fetch().finally(() => { this.loaded = true; });
+    }
+
   }
 
   getMeaning() {
