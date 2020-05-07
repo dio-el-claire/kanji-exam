@@ -1,13 +1,7 @@
 import CONFIG from './config';
 
-// window.onload = function() {
-//   window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-//   window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
-//   window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
-// }
-
 class Cache {
-  indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB
+  // indexedDB = window.indexedDB
 
   name = CONFIG.DB_NAME
 
@@ -15,27 +9,34 @@ class Cache {
 
   types = CONFIG.TYPES
 
-  constructor() {
-    this.openRequest = this.indexedDB.open(this.name, this.version);
+  db = null
 
-    this.openRequest.onsuccess = (e) => {
-      console.log('onsuccess', e)
-    }
-    this.openRequest.onerror = (e) => {
-      console.log('onerror', e)
-    }
-    this.openRequest.onupgradeneeded = (e) => {
-      console.log('onupgradeneeded', e)
-      const db = e.target.result;
-      console.log(db.version)
-      this.initDB(db);
-    }
+  init() {
+    return new Promise((resolve, reject) => {
+      if (!window.indexedDB) {
+        return reject('indexedDB does not supported');
+      }
+      const request = window.indexedDB.open(this.name, this.version);
 
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        resolve();
+      }
+      request.onerror = (e) => {
+        console.log('onerror', e)
+        reject(e);
+      }
+      request.onupgradeneeded = (e) => {
+        console.log('onupgradeneeded', e)
+        const db = e.target.result;
+        console.log(db.version)
+        this.initDB(db);
+      }
+    });
   }
 
   initDB(db) {
     Object.keys(this.types).forEach(type => {
-      console.log('->', db)
       const label = this.types[type].label;
       if (db.objectStoreNames.contains(label)) {
         db.deleteObjectStore(label);
@@ -49,7 +50,42 @@ class Cache {
   }
 
   getGroups() {
-    return [];
+    return new Promise((resolve, reject) => {
+      const type = this.types.GROUP.label;
+      const request = this.db.transaction(type).objectStore(type).getAll();
+      request.onsuccess = e => { resolve(e.target.result); };
+      request.onerror = () => { reject(); };
+    });
+  }
+
+  getKanji(id) {
+    return new Promise((resolve, reject) => {
+      const type = this.types.KANJI.label;
+      const request = this.db.transaction(type).objectStore(type).get(id);
+      request.onsuccess = e => { resolve(e.target.result); };
+      request.onerror = () => { reject(); };
+    });
+  }
+
+  putGroup(data) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        return reject();
+      }
+      const type = this.types.GROUP.label;
+      const request = this.db.transaction(type, 'readwrite').objectStore(type).put(data);
+      request.onsuccess = resolve;
+      request.onerror = reject;
+    });
+  }
+
+  putKanji(data) {
+    return new Promise((resolve, reject) => {
+      const type = this.types.KANJI.label;
+      const request = this.db.transaction(type, 'readwrite').objectStore(type).put(data);
+      request.onsuccess = resolve;
+      request.onerror = reject;
+    })
   }
 }
 

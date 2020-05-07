@@ -11,7 +11,9 @@ export default class Kanji extends Model {
       kun_readings: [],
       on_readings: [],
       name_readings: [],
-      jlpt: null
+      jlpt: null,
+      stroke_count: null,
+      unicode: null
     }
   }
 
@@ -29,9 +31,26 @@ export default class Kanji extends Model {
 
   load() {
     if (!this.loaded) {
-      this.fetch().finally(() => { this.loaded = true; });
+      this.fetch().finally(() => {
+        this.loaded = true;
+        this.emit('loaded');
+      });
     }
+  }
 
+  serialize() {
+    const data = { loaded: this.loaded };
+    Object.keys(this.defaults()).forEach(attr => {
+      data[attr] = this[attr];
+    });
+    return data;
+  }
+
+  materialize(data) {
+    this.loaded = data.loaded;
+    Object.keys(this.defaults()).forEach(attr => {
+      this[attr] = data[attr];
+    });
   }
 
   getMeaning() {

@@ -1,24 +1,54 @@
 import KanjiGroup from './KanjiGroup'
 import cache from '../cache';
 
+const labels = [];
+let i = 0;
+while(++i <= 10) {
+  if (i !== 7) {
+    labels.push(`grade-${i}`);
+  }
+}
+
+i = 0;
+while (++i <= 5) {
+  labels.push(`jlpt-${i}`);
+}
+labels.push('joyo');
+labels.push('jinmeiyo');
+labels.push('all');
+
 class KanjiCollection {
   groups = []
 
-  _groupsMap = {}
+  #groupsMap = {}
 
   constructor() {
-    cache.getGroups();
-    
-    this.groups= [1, 2, 3, 4, 5, 6, 8, 'joyo', 'jinmeiyo', 'all'].map(key => {
-      let label = key > 0 ? `grade-${key}` : key;
+    this._initGroups();
+    this._init();
+  }
+
+  _init() {
+    return new Promise(resolve => {
+      cache.init().then(() => {
+        cache.getGroups().then(groups => {
+          groups.forEach(data => {
+            this.#groupsMap[data.label].materialize(data);
+          });
+          resolve();
+        });
+      })
+    });
+  }
+
+  _initGroups() {
+    this.groups= labels.map(label => {
       const group = new KanjiGroup(label);
-      this._groupsMap[label] = group;
-      return group;
+      return this.#groupsMap[label] = group;
     })
   }
 
   getGroup(label) {
-    const group = this._groupsMap[label]
+    const group = this.#groupsMap[label]
     if (!group) {
       throw new Error(`Invalid kanji group label "${label}"`)
     }
@@ -27,25 +57,29 @@ class KanjiCollection {
   }
 
   loadGroup(group) {
-    if (!group) {
-      throw new Error('Group required');
-    }
     if (group.loaded) {
       return;
     }
 
-    group.fetch().then(models => {
-      if (group.label === 'all') {
-        console.log('from all')
-        models.filter(model => model.grade).forEach(model => {
-          let label = `grade-${model.grade}`;
-          this._groupsMap[label].add(model);
-        })
-      } else {
-        console.log('to all')
-        this._groupsMap.all.add(models)
+    this._init().then(() => {
+      if (group.loaded) {
+        return;
       }
-    })
+      group.fetch().then(models => {
+
+        cache.putGroup(group.serialize());
+
+        if (group.label === 'all') {
+          console.log(models)
+          // @todo
+          // models.filter(model => model.grade).forEach(model => {
+          //   let label = `grade-${model.grade}`;
+          //   this.#groupsMap[label].add(model);
+          // })
+        }
+      });
+    });
+
   }
 }
 

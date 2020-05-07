@@ -1,11 +1,17 @@
 import { Collection } from 'vue-mc'
 import Kanji from './Kanji'
-import CONFIG from '../config';
+import cache from '../cache';
 
 export default class KanjiGroup extends Collection {
   label = ''
 
   loaded = false
+
+  _cache = {}
+
+  _modelIds = []
+
+  count = 0
 
   constructor(label, models, options, attributes) {
     super(models, options, attributes)
@@ -29,7 +35,7 @@ export default class KanjiGroup extends Collection {
       if (this.loaded) {
         return resolve(this.models);
       }
-
+      // @todo jlpt
       const config = {
         url: `${this.getFetchRoute()}${this.label}`,
         method: 'GET'
@@ -40,35 +46,69 @@ export default class KanjiGroup extends Collection {
       this.createRequest(config)
         .send()
         .then(response => {
-          this.add(response.getData().map(id => new Kanji({ kanji: id })));
-          // response.getData().forEach(id => {
-          //   this.add(new Kanji({ kanji: id }));
-          // });
-          this.loaded = true
+          if (!this.loaded) {
+            // group can be restored from cache
+            this._addModels(response.getData());
+            this.loaded = true
+          }
           resolve(this.models)
         })
-        .catch((e) => {
-          reject(e)
-        })
+        .catch(reject)
         .finally(() => {
           this.loading = false
         })
     })
-
   }
 
-  getPage(page) {
-    page = parseInt(page);
-    console.log('getPage', page)
-    if (!(Number.isInteger(page) && page > 0)) {
-      return [];
-    }
-    const limit = CONFIG.ITEMS_PER_PAGE;
-    const offset = limit * (page - 1);
-    return this.models.slice(offset, offset + limit).map(model => {
-      model.load();
+  serialize() {
+    const { label, loaded } = this;
+    return {
+      label,
+      loaded,
+      models: this.models.map(model => model.kanji)
+    };
+  }
+
+  materialize(data) {
+    const { label, loaded, models } = data;
+    this.label = label;
+    this.loaded = loaded;
+    this._modelIds = models;
+    this.count = models.length;
+  }
+
+  _addModels(ids) {
+    this.add(ids.map(id => {
+      const model = new Kanji({ kanji: id });
+      model.on('loaded', () => {
+        cache.putKanji(model.serialize());
+      });
       return model;
-    });
+    }));
+    this.count = this.models.length;
+  }
+
+  getModels(start, end) {
+    const key = `${start}-${end}`;
+    if (!this._cache[key]) {
+      if (!this.models.length) {
+        this._addModels(this._modelIds)
+      }
+      this._cache[key] = this.models.slice(start, end).map(model => {
+        cache.getKanji(model.kanji).then(data => {
+          if(data) {
+            model.materialize(data);
+          } else {
+            model.load();
+          }
+        }).catch(() => {
+          model.load();
+        })
+
+        return model;
+      });
+    }
+    return this._cache[key];
   }
 
   findKanji(kanji) {
