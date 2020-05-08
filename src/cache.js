@@ -1,8 +1,7 @@
 import CONFIG from './config';
+import { openDB } from 'idb';
 
 class Cache {
-  // indexedDB = window.indexedDB
-
   name = CONFIG.DB_NAME
 
   version = CONFIG.DB_VERSION
@@ -11,28 +10,21 @@ class Cache {
 
   db = null
 
-  init() {
-    return new Promise((resolve, reject) => {
-      if (!window.indexedDB) {
-        return reject('indexedDB does not supported');
-      }
-      const request = window.indexedDB.open(this.name, this.version);
-
-      request.onsuccess = (e) => {
-        this.db = e.target.result;
-        resolve();
-      }
-      request.onerror = (e) => {
-        console.log('onerror', e)
-        reject(e);
-      }
-      request.onupgradeneeded = (e) => {
-        console.log('onupgradeneeded', e)
-        const db = e.target.result;
-        console.log(db.version)
+  async init() {
+    const db = await openDB(this.name, this.version, {
+      upgrade: (db) => {
         this.initDB(db);
+      },
+      blocked() {
+        alert('Please, close this page in other tabs');
+      },
+      blocking() {
+        alert('Newer version available. Reload page to update');
       }
     });
+
+    this.db = db;
+    return Promise.resolve();
   }
 
   initDB(db) {
@@ -49,43 +41,22 @@ class Cache {
     })
   }
 
-  getGroups() {
-    return new Promise((resolve, reject) => {
-      const type = this.types.GROUP.label;
-      const request = this.db.transaction(type).objectStore(type).getAll();
-      request.onsuccess = e => { resolve(e.target.result); };
-      request.onerror = () => { reject(); };
-    });
+  async getGroups() {
+    const groups = await this.db.getAll(this.types.GROUP.label);
+    return Promise.resolve(groups);
   }
 
-  getKanji(id) {
-    return new Promise((resolve, reject) => {
-      const type = this.types.KANJI.label;
-      const request = this.db.transaction(type).objectStore(type).get(id);
-      request.onsuccess = e => { resolve(e.target.result); };
-      request.onerror = () => { reject(); };
-    });
+  async getKanji(id) {
+    const kanji = await this.db.get(this.types.KANJI.label, id);
+    return Promise.resolve(kanji);
   }
 
-  putGroup(data) {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        return reject();
-      }
-      const type = this.types.GROUP.label;
-      const request = this.db.transaction(type, 'readwrite').objectStore(type).put(data);
-      request.onsuccess = resolve;
-      request.onerror = reject;
-    });
+  async putGroup(data) {
+    await this.db.put(this.types.GROUP.label, data);
   }
 
-  putKanji(data) {
-    return new Promise((resolve, reject) => {
-      const type = this.types.KANJI.label;
-      const request = this.db.transaction(type, 'readwrite').objectStore(type).put(data);
-      request.onsuccess = resolve;
-      request.onerror = reject;
-    })
+  async putKanji(data) {
+    await this.db.put(this.types.KANJI.label, data);
   }
 }
 

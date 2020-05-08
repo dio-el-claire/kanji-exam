@@ -12,6 +12,7 @@
     "@babel/plugin-proposal-private-methods": "^7.8.3",
     "bootstrap-vue": "^2.12.0",
     "core-js": "^3.6.4",
+    "idb": "^5.0.2",
     "vue": "^2.6.11",
     "vue-mc": "^0.6.0",
     "vue-router": "^3.1.6",

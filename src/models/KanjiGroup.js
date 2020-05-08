@@ -13,6 +13,8 @@ export default class KanjiGroup extends Collection {
 
   count = 0
 
+  error = null
+
   constructor(label, models, options, attributes) {
     super(models, options, attributes)
     this.label = label
@@ -30,34 +32,29 @@ export default class KanjiGroup extends Collection {
     }
   }
 
-  fetch() {
-    return new Promise((resolve, reject) => {
-      if (this.loaded) {
-        return resolve(this.models);
-      }
-      // @todo jlpt
+  async fetch() {
+    if (!this.loaded) {
+      const path = this.label.indexOf('jlpt') === 0 ? 'all' : this.label;
       const config = {
-        url: `${this.getFetchRoute()}${this.label}`,
+        url: `${this.getFetchRoute()}${path}`,
         method: 'GET'
       }
 
-      this.loading = true
+      this.loading = true;
 
-      this.createRequest(config)
-        .send()
-        .then(response => {
-          if (!this.loaded) {
-            // group can be restored from cache
-            this._addModels(response.getData());
-            this.loaded = true
-          }
-          resolve(this.models)
-        })
-        .catch(reject)
-        .finally(() => {
-          this.loading = false
-        })
-    })
+      let response;
+
+      try {
+        response = await this.createRequest(config).send();
+        this._addModels(response.getData());
+        this.loaded = true;
+      } catch (e) {
+        this.error = e.message;
+        this.loading = false;
+        return Promise.reject(e);
+      }
+    }
+    return Promise.resolve(this.models)
   }
 
   serialize() {
@@ -71,6 +68,7 @@ export default class KanjiGroup extends Collection {
 
   materialize(data) {
     const { label, loaded, models } = data;
+
     this.label = label;
     this.loaded = loaded;
     this._modelIds = models;
@@ -101,10 +99,7 @@ export default class KanjiGroup extends Collection {
           } else {
             model.load();
           }
-        }).catch(() => {
-          model.load();
-        })
-
+        });
         return model;
       });
     }

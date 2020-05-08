@@ -27,17 +27,13 @@ class KanjiCollection {
     this._init();
   }
 
-  _init() {
-    return new Promise(resolve => {
-      cache.init().then(() => {
-        cache.getGroups().then(groups => {
-          groups.forEach(data => {
-            this.#groupsMap[data.label].materialize(data);
-          });
-          resolve();
-        });
-      })
+  async _init() {
+    await cache.init();
+    const groups = await cache.getGroups();
+    groups.forEach(data => {
+      this.#groupsMap[data.label].materialize(data);
     });
+    return Promise.resolve();
   }
 
   _initGroups() {
@@ -56,29 +52,27 @@ class KanjiCollection {
     return group;
   }
 
-  loadGroup(group) {
+  async loadGroup(group) {
+    await this._init();
+
     if (group.loaded) {
       return;
     }
 
-    this._init().then(() => {
-      if (group.loaded) {
-        return;
+    try {
+      const models = await group.fetch();
+      cache.putGroup(group.serialize());
+      if (group.label === 'all') {
+        console.log(models)
+        // @todo
+        // models.filter(model => model.grade).forEach(model => {
+        //   let label = `grade-${model.grade}`;
+        //   this.#groupsMap[label].add(model);
+        // })
       }
-      group.fetch().then(models => {
-
-        cache.putGroup(group.serialize());
-
-        if (group.label === 'all') {
-          console.log(models)
-          // @todo
-          // models.filter(model => model.grade).forEach(model => {
-          //   let label = `grade-${model.grade}`;
-          //   this.#groupsMap[label].add(model);
-          // })
-        }
-      });
-    });
+    } catch(e) {
+      console.warn(e);
+    }
 
   }
 }

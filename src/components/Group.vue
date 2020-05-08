@@ -1,5 +1,5 @@
 <template>
-  <b-container>GROUPS
+  <b-container>
     <b-row>
       <b-col cols="2">
         <b-nav vertical align="left">
@@ -15,7 +15,7 @@
         </b-nav>
       </b-col>
       <b-col>
-        <h2>{{selectedGroup.label}}</h2>
+        <h2>{{selectedGroup.label}} {{selectedGroup.loading}}</h2>
         <div v-if="models.length" class="overflow-auto">
           <b-pagination-nav limit="10" :link-gen="linkGen" :number-of-pages="totalPages" use-router></b-pagination-nav>
         </div>
@@ -26,6 +26,16 @@
             </div>
           </div>
         </div>
+        <div v-else-if="selectedGroup.error">
+          <div class="error">
+            Unable to load kanji list<br>
+            {{selectedGroup.error}}
+          </div>
+        </div>
+        <div v-else-if="selectedGroup.loading" class="spinner-border spinner-border-sm" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+
       </b-col>
     </b-row>
   </b-container>

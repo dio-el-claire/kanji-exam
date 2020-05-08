@@ -18,17 +18,8 @@
 
 <script>
 
-import cache from './cache'
-
 export default {
-  name: 'App',
-
-  created() {
-    cache.init().catch(e => {
-      console.log('failed', e)
-      alert('Browser does not support indexedDB');
-    });
-  }
+  name: 'App'
 }
 </script>
 
