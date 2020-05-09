@@ -1,7 +1,7 @@
 <template>
 <div class="kanji-list-item">
   <h3>{{kanji.kanji}}</h3>
-  <span>{{kanji.getMeaning()}} </span>
+  <span>{{kanji.meanings[0]}} </span>
 </div>
 </template>
 

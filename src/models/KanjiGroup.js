@@ -1,8 +1,47 @@
 import { Collection } from 'vue-mc'
 import Kanji from './Kanji'
 import cache from '../cache';
+import CONFIG from '../config';
 
-export default class KanjiGroup extends Collection {
+export default class KanjiGroup {
+  label = ''
+
+  loaded = false
+
+  models = []
+
+  error = null
+
+  serialize() {
+    return {
+      label: this.label,
+      loaded: this.loaded,
+      models: this.models.map(model => model.kanji || model)
+    };
+  }
+
+  materialize(data) {
+    const { label, loaded, models } = data;
+
+    this.label = label;
+    this.loaded = loaded;
+    this.models = models;
+  }
+
+  async loadKanjies() {
+    const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.label}`;
+    try {
+      const data = await fetch(url);
+    } catch (e) {
+      this.error = e.message;
+      return Promise.reject(e);
+    }
+    this.models = data.json();
+    return Promise.resolve();
+  }
+}
+
+class _KanjiGroup extends Collection {
   label = ''
 
   loaded = false

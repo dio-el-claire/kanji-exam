@@ -1,4 +1,8 @@
 export default {
+  BASE_URL: '',
+  KANJI_PATH: 'kanji',
+  READING_PATH: 'reading',
+  WORDS_PATH: 'words',
   ITEMS_PER_PAGE: 20,
   DB_NAME: 'kanjiApp',
   DB_VERSION: 1,

@@ -1,63 +1,91 @@
-import { Model } from 'vue-mc'
+import CONFIG from '../config';
 
-export default class Kanji extends Model {
+class Evented {
+
+  #listeners = []
+
+  on(event, listener) {
+    if (!this.#listeners[event]) {
+      this.#listeners[event] = [];
+    }
+    this.#listeners[event].push(listener);
+    // console.log('on', this.#listeners[event])
+  }
+
+  off(event, listener) {
+    const listeners = this.#listeners[event] || [];
+    const ndx = listeners.indexOf(listener);
+    if (ndx !== -1) {
+      listeners.splice(ndx, 1);
+      console.log('off', listeners)
+    }
+  }
+
+  once(event, listener) {
+    const fn = (...args) => {
+      listener(args);
+      this.off(event, fn);
+    }
+    this.on(event, fn);
+  }
+
+  emit(event, ...data) {
+    const listeners = this.#listeners[event] || [];
+
+    listeners.forEach(listener => {
+      listener(data);
+    });
+  }
+}
+
+
+export default class Kanji extends Evented {
   loaded = false
 
-  defaults() {
-    return {
-      kanji: '',
-      grade: null,
-      meanings: [],
-      kun_readings: [],
-      on_readings: [],
-      name_readings: [],
-      jlpt: null,
-      stroke_count: null,
-      unicode: null
-    }
+  attrs = {
+    kanji: '',
+    grade: null,
+    meanings: [],
+    kun_readings: [],
+    on_readings: [],
+    name_readings: [],
+    jlpt: null,
+    stroke_count: null,
+    unicode: null
   }
 
-  routes() {
-    return {
-      fetch: 'https://kanjiapi.dev/v1/kanji/{kanji}'
-    }
+  constructor(data = {}) {
+    super();
+    this.materialize(data);
   }
 
-  options() {
-    return {
-      identifier: 'kanji'
-    }
+  attrAsString(attr, clue = ', ') {
+    return Array.isArray(this[attr]) ? this[attr].join(clue) : '';
   }
 
-  load() {
-    if (!this.loaded) {
-      this.fetch().finally(() => {
-        this.loaded = true;
-        this.emit('loaded');
-      });
+  materialize(data) {
+    Object.keys(this.attrs).forEach(attr => {
+      this[attr] = data[attr] || this.attrs[attr];
+    });
+    this.loaded = !!this.meanings.length;
+    if (this.loaded) {
+      this.emit('loaded');
     }
   }
 
   serialize() {
     const data = { loaded: this.loaded };
-    Object.keys(this.defaults()).forEach(attr => {
+    Object.keys(this.attrs).forEach(attr => {
       data[attr] = this[attr];
     });
     return data;
   }
 
-  materialize(data) {
-    this.loaded = data.loaded;
-    Object.keys(this.defaults()).forEach(attr => {
-      this[attr] = data[attr];
-    });
+  async fetch() {
+    const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.kanji}`;
+    const data = await fetch(url);
+    this.materialize(data.json());
+    return Promise.resolve(this);
   }
 
-  getMeaning() {
-    return this.meanings[0];
-  }
-
-  getMeanings() {
-    return this.meanings.join(', ');
-  }
 }
