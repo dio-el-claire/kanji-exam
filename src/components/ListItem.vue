@@ -1,13 +1,22 @@
 <template>
 <div class="kanji-list-item">
   <h3>{{kanji.kanji}}</h3>
-  <span>{{kanji.meanings[0]}} </span>
+  {{kanji.loaded}}
+  <span>{{kanji.meanings}} {{kanji.grade}}</span>
 </div>
 </template>
 
 <script>
 export default {
-  props: ['kanji']
+  props: ['kanji'],
+  created() {
+    console.log('->', this.kanji.kanji, this.kanji.loaded)
+  },
+  watch: {
+    'kanji.loaded'() {
+      console.log(this.kanji.kanji, this.kanji.loaded)
+    }
+  }
 }
 </script>
 

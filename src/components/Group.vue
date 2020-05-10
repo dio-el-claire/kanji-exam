@@ -21,7 +21,7 @@
         </div>
         <div v-if="models.length" class="container-fluid group-container">
           <div class="row">
-            <div v-for="kanji in models" :key="kanji.kanji" class="col-auto" @click="goToCard(kanji.kanji)">
+            <div v-for="(kanji, i) in models" :key="i" class="col-auto" @click="goToCard(kanji.kanji)">
               <list-item :kanji="kanji"/>
             </div>
           </div>
@@ -54,12 +54,6 @@ export default {
     }
   },
   methods: {
-    setModels(page) {
-      const limit = CONFIG.ITEMS_PER_PAGE;
-      const start = limit * (page - 1);
-      const end = start + CONFIG.ITEMS_PER_PAGE;
-      this.models = this.selectedGroup.loaded ? this.selectedGroup.getModels(start, end) : [];
-    },
     goToCard(kanji) {
       this.$router.push({ name: 'card', params: { groupId: this.selectedGroup.label, kanji }});
     },
@@ -77,7 +71,9 @@ export default {
       const start = limit * (this.$route.params.page - 1);
       const end = start + limit;
 
-      return this.selectedGroup.loaded ? this.selectedGroup.getModels(start, end) : []
+      const m = this.selectedGroup.loaded ? this.selectedGroup.slice(start, end) : [];
+      console.log('-->', m.length && m[0].kanji, m.length && m[0].loaded)
+      return m;
     },
     totalPages() {
       return Math.ceil(this.selectedGroup.models.length / CONFIG.ITEMS_PER_PAGE);

@@ -46,6 +46,11 @@ class Cache {
     return Promise.resolve(groups);
   }
 
+  async getGroup(label) {
+    const group = await this.db.get(this.types.GROUP.label, label);
+    return Promise.resolve(group);
+  }
+
   async getKanji(id) {
     const kanji = await this.db.get(this.types.KANJI.label, id);
     return Promise.resolve(kanji);

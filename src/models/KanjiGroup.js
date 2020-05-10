@@ -1,4 +1,3 @@
-import { Collection } from 'vue-mc'
 import Kanji from './Kanji'
 import cache from '../cache';
 import CONFIG from '../config';
@@ -8,145 +7,96 @@ export default class KanjiGroup {
 
   loaded = false
 
+  custom = false
+
   models = []
 
   error = null
 
-  serialize() {
-    return {
-      label: this.label,
-      loaded: this.loaded,
-      models: this.models.map(model => model.kanji || model)
-    };
-  }
-
-  materialize(data) {
-    const { label, loaded, models } = data;
-
+  constructor(label) {
     this.label = label;
-    this.loaded = loaded;
-    this.models = models;
-  }
-
-  async loadKanjies() {
-    const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.label}`;
-    try {
-      const data = await fetch(url);
-    } catch (e) {
-      this.error = e.message;
-      return Promise.reject(e);
-    }
-    this.models = data.json();
-    return Promise.resolve();
-  }
-}
-
-class _KanjiGroup extends Collection {
-  label = ''
-
-  loaded = false
-
-  _cache = {}
-
-  _modelIds = []
-
-  count = 0
-
-  error = null
-
-  constructor(label, models, options, attributes) {
-    super(models, options, attributes)
-    this.label = label
-  }
-
-  options() {
-    return {
-      model: Kanji
-    }
-  }
-
-  routes() {
-    return {
-      fetch: 'https://kanjiapi.dev/v1/kanji/'
-    }
-  }
-
-  async fetch() {
-    if (!this.loaded) {
-      const path = this.label.indexOf('jlpt') === 0 ? 'all' : this.label;
-      const config = {
-        url: `${this.getFetchRoute()}${path}`,
-        method: 'GET'
-      }
-
-      this.loading = true;
-
-      let response;
-
-      try {
-        response = await this.createRequest(config).send();
-        this._addModels(response.getData());
-        this.loaded = true;
-      } catch (e) {
-        this.error = e.message;
-        this.loading = false;
-        return Promise.reject(e);
-      }
-    }
-    return Promise.resolve(this.models)
+    this.load();
   }
 
   serialize() {
-    const { label, loaded } = this;
+    const { label, loaded, custom, models = [] } = this;
     return {
       label,
       loaded,
-      models: this.models.map(model => model.kanji)
+      custom,
+      models: models.map(model => model.kanji || model)
     };
   }
 
   materialize(data) {
-    const { label, loaded, models } = data;
-
+    const { label, custom, models = [] } = data;
     this.label = label;
-    this.loaded = loaded;
-    this._modelIds = models;
+    this.custom = custom;
+    this.setModels(models);
+  }
+
+  async load() {
+    await cache.init();
+
+    const data = await cache.getGroup(this.label);
+
+    if (data) {
+      this.materialize(data);
+    } else {
+      await this.fetchKanji();
+      cache.putGroup(this.serialize());
+    }
+  }
+
+  async fetchKanji() {
+    if (this.label.indexOf('jlpt-') === -1) {
+      const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.label}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        this.setModels(data);
+        return Promise.resolve();
+      } catch (e) {
+        this.error = e.message;
+        return Promise.resolve([]);
+      }
+    }
+  }
+
+  setModels(models) {
+    this.models = models;
+    this.loaded = !!models.length;
     this.count = models.length;
   }
 
-  _addModels(ids) {
-    this.add(ids.map(id => {
-      const model = new Kanji({ kanji: id });
-      model.on('loaded', () => {
-        cache.putKanji(model.serialize());
-      });
-      return model;
-    }));
-    this.count = this.models.length;
-  }
-
-  getModels(start, end) {
-    const key = `${start}-${end}`;
-    if (!this._cache[key]) {
-      if (!this.models.length) {
-        this._addModels(this._modelIds)
+  slice(start, end) {
+    // console.log(this.models)
+    const models = this.models.slice(start, end).map(model => {
+      // console.log(model, typeof model)
+      if (typeof model === 'string') {
+        const ndx = this.models.indexOf(model);
+        model = new Kanji(model);
+        this.models[ndx] = model;
+        // console.log(this.models[ndx])
       }
-      this._cache[key] = this.models.slice(start, end).map(model => {
+      if (!model.loaded) {
         cache.getKanji(model.kanji).then(data => {
-          if(data) {
+          if (data) {
+
             model.materialize(data);
           } else {
-            model.load();
+            model.fetch().then(() => {
+              console.log('putKanji', model)
+              cache.putKanji(model);
+            });
           }
         });
-        return model;
-      });
-    }
-    return this._cache[key];
-  }
+      }
+      return model;
+    });
+    console.log(models)
 
-  findKanji(kanji) {
-    return this.models.find(model => model.kanji === kanji);
+    return  models;
   }
-
 }

@@ -41,6 +41,11 @@ class Evented {
 
 export default class Kanji extends Evented {
   loaded = false
+  kanji = ''
+  grade = null
+  meanings = []
+  kun_readings = []
+  on_readings = []
 
   attrs = {
     kanji: '',
@@ -54,9 +59,9 @@ export default class Kanji extends Evented {
     unicode: null
   }
 
-  constructor(data = {}) {
+  constructor(kanji) {
     super();
-    this.materialize(data);
+    this.kanji = kanji;
   }
 
   attrAsString(attr, clue = ', ') {
@@ -68,9 +73,7 @@ export default class Kanji extends Evented {
       this[attr] = data[attr] || this.attrs[attr];
     });
     this.loaded = !!this.meanings.length;
-    if (this.loaded) {
-      this.emit('loaded');
-    }
+    console.log('1', this.kanji, this.loaded)
   }
 
   serialize() {
@@ -83,8 +86,9 @@ export default class Kanji extends Evented {
 
   async fetch() {
     const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.kanji}`;
-    const data = await fetch(url);
-    this.materialize(data.json());
+    const response = await fetch(url);
+    const data = await response.json();
+    this.materialize(data);
     return Promise.resolve(this);
   }
 
