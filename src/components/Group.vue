@@ -72,7 +72,7 @@ export default {
       const end = start + limit;
 
       const m = this.selectedGroup.loaded ? this.selectedGroup.slice(start, end) : [];
-      console.log('-->', m.length && m[0].kanji, m.length && m[0].loaded)
+
       return m;
     },
     totalPages() {

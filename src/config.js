@@ -7,9 +7,8 @@ export default {
   DB_NAME: 'kanjiApp',
   DB_VERSION: 1,
   TYPES: {
-    GROUP: { label: 'group', key: 'label', indexes: [{ name: 'label' }] },
+    GROUP: { label: 'group', key: 'label', indexes: [] },
     KANJI: { label: 'kanji', key: 'kanji', indexes: [
-      { name: 'kanji' },
       { name: 'kun_readings', options: { multiEntry: true } },
       { name: 'on_readings', options: { multiEntry: true } }
     ] }

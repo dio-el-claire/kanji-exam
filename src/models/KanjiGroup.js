@@ -49,54 +49,50 @@ export default class KanjiGroup {
   }
 
   async fetchKanji() {
-    if (this.label.indexOf('jlpt-') === -1) {
+    var data;
+
+    if (this.label.indexOf('jlpt-') === 0) {
+      data = CONFIG[this.label.toUpperCase()];
+    } else {
       const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.label}`;
 
       try {
         const response = await fetch(url);
-        const data = await response.json();
-        this.setModels(data);
-        return Promise.resolve();
+        data = await response.json();
       } catch (e) {
         this.error = e.message;
-        return Promise.resolve([]);
+        return Promise.resolve();
       }
     }
+
+    this.setModels(data);
+    return Promise.resolve();
   }
 
   setModels(models) {
-    this.models = models;
+    this.models = models.map(kanji => new Kanji(kanji));
     this.loaded = !!models.length;
     this.count = models.length;
   }
 
   slice(start, end) {
-    // console.log(this.models)
     const models = this.models.slice(start, end).map(model => {
-      // console.log(model, typeof model)
-      if (typeof model === 'string') {
-        const ndx = this.models.indexOf(model);
-        model = new Kanji(model);
-        this.models[ndx] = model;
-        // console.log(this.models[ndx])
-      }
-      if (!model.loaded) {
-        cache.getKanji(model.kanji).then(data => {
-          if (data) {
-
-            model.materialize(data);
-          } else {
-            model.fetch().then(() => {
-              console.log('putKanji', model)
-              cache.putKanji(model);
-            });
-          }
-        });
+      if (!model.loaded && !model.loading) {
+        this.loadModel(model);
       }
       return model;
     });
-    console.log(models)
 
     return  models;
+  }
+
+  async loadModel(model) {
+    model.loading = true;
+    const data = await cache.getKanji(model.kanji);
+    if (data) {
+      return model.materialize(data);
+    }
+    await model.fetch();
+    cache.putKanji(model);
   }
 }

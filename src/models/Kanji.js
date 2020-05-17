@@ -41,6 +41,7 @@ class Evented {
 
 export default class Kanji extends Evented {
   loaded = false
+  loading = false
   kanji = ''
   grade = null
   meanings = []
@@ -73,7 +74,6 @@ export default class Kanji extends Evented {
       this[attr] = data[attr] || this.attrs[attr];
     });
     this.loaded = !!this.meanings.length;
-    console.log('1', this.kanji, this.loaded)
   }
 
   serialize() {
@@ -85,10 +85,12 @@ export default class Kanji extends Evented {
   }
 
   async fetch() {
+    this.loading = true;
     const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.kanji}`;
     const response = await fetch(url);
     const data = await response.json();
     this.materialize(data);
+    this.loading = false;
     return Promise.resolve(this);
   }
 
