@@ -26,8 +26,8 @@ export default {
     margin: 2px;
     border: 1px solid #aaa;
     border-radius: 4px;
-    max-width: 200px;
-    width: 200px;
+    max-width: 160px;
+    width: 160px;
     min-height: 100px;
   }
 </style>
