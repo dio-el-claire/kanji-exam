@@ -2,8 +2,14 @@ import Kanji from './Kanji'
 import cache from '../cache';
 import CONFIG from '../config';
 
+function capitalize(str) {
+  return `${str[0].toUpperCase()}${str.slice(1)}`;
+}
+
 export default class KanjiGroup {
   label = ''
+
+  name = ''
 
   loaded = false
 
@@ -15,6 +21,7 @@ export default class KanjiGroup {
 
   constructor(label) {
     this.label = label;
+    this.name = capitalize(label).replace('-', ' ');
     this.load();
   }
 

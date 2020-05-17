@@ -3,15 +3,20 @@
     <div id="kanji-group_nav">
       <b-container>
       <b-nav>
-        <b-nav-item active>Active</b-nav-item>
-        <b-nav-item>Link</b-nav-item>
-        <b-nav-item>Another Link</b-nav-item>
-        <b-nav-item disabled>Disabled</b-nav-item>
+        <b-nav-form>
+          <div>
+            Select kanji group:
+            <b-dropdown id="dropdown-1" :text="selectedGroup.name" class="m-md-2">
+              <b-dropdown-item v-for="group in groups" :key="group.label" :active="group.label === selectedGroup.label" @click="goToGroup(group)">
+                <div>{{group.name}}</div>
+              </b-dropdown-item>
+            </b-dropdown>
+          </div>
+        </b-nav-form>
       </b-nav>
     </b-container>
     </div>
     <div id="kanji-group_view">
-
       <b-container>
         <b-row>
           <b-col>
@@ -65,6 +70,10 @@ export default {
     }
   },
   methods: {
+    goToGroup(group) {
+      console.log(group)
+      this.$router.push({ name: 'group', params: { id: group.label, page: 1 } });
+    },
     goToCard(kanji) {
       this.$router.push({ name: 'card', params: { groupId: this.selectedGroup.label, kanji }});
     },
@@ -110,13 +119,13 @@ export default {
     top: 0;
     left: 0;
     right: 0;
-    height: 40px;
+    height: 54px;
     border-bottom: 1px solid #eee;
   }
 
   #kanji-group_view {
     position: absolute;
-    top: 40px;
+    top: 54px;
     left: 0;
     right: 0;
     bottom: 0;
