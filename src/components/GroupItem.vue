@@ -1,21 +1,16 @@
 <template>
 <div class="kanji-list-item">
   <h3>{{kanji.kanji}}</h3>
-  <span>{{kanji.meanings[0]}}</span>
+  <div v-if="kanji.loaded">{{kanji.meanings[0]}}</div>
+  <div v-else>
+    <b-spinner small label="Loading..."></b-spinner>
+  </div>
 </div>
 </template>
 
 <script>
 export default {
   props: ['kanji'],
-  // created() {
-  //   console.log('->', this.kanji.kanji, this.kanji.loaded)
-  // },
-  // watch: {
-  //   'kanji.loaded'() {
-  //     console.log(this.kanji.kanji, this.kanji.loaded)
-  //   }
-  // }
 }
 </script>
 

@@ -93,6 +93,10 @@ export default class KanjiGroup {
     return  models;
   }
 
+  indexOf(model) {
+    return this.models.indexOf(model);
+  }
+
   async loadModel(model) {
     model.loading = true;
     const data = await cache.getKanji(model.kanji);
