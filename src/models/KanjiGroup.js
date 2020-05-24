@@ -19,6 +19,8 @@ export default class KanjiGroup {
 
   error = null
 
+  #promise = null;
+
   constructor(label) {
     this.label = label;
     this.name = capitalize(label).replace('-', ' ');
@@ -43,16 +45,19 @@ export default class KanjiGroup {
   }
 
   async load() {
-    await cache.init();
+    if (!this.#promise) {
+      this.#promise = await cache.init();
 
-    const data = await cache.getGroup(this.label);
+      const data = await cache.getGroup(this.label);
 
-    if (data) {
-      this.materialize(data);
-    } else {
-      await this.fetchKanji();
-      cache.putGroup(this.serialize());
+      if (data) {
+        this.materialize(data);
+      } else {
+        await this.fetchKanji();
+        cache.putGroup(this.serialize());
+      }
     }
+    return this.#promise;
   }
 
   async fetchKanji() {

@@ -35,6 +35,7 @@ export default class Kanji {
       this[attr] = data[attr] || this.attrs[attr];
     });
     this.loaded = !!this.meanings.length;
+    return this;
   }
 
   serialize() {
@@ -53,6 +54,17 @@ export default class Kanji {
     this.materialize(data);
     this.loading = false;
     return Promise.resolve(this);
+  }
+
+  async load() {
+    if (this.loaded) {
+      return Promise.resolve(this);
+    }
+    let data = await cache.getKanji(this.kanji);
+    if (data) {
+      return Promise.resolve(this.materialize(data));
+    }
+    return this.fetch();
   }
 
   static async find(symbol) {
