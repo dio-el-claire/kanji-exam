@@ -57,6 +57,7 @@ export default class Kanji {
   }
 
   async load() {
+    console.log('load', this.kanji)
     if (this.loaded) {
       return Promise.resolve(this);
     }

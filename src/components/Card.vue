@@ -3,8 +3,8 @@
     <b-container>
       <b-container>
         <b-row>
-          <b-col md="2" class="kanji-card_prev" @click="$emit('goPrev')">
-            <b-icon-chevron-double-left></b-icon-chevron-double-left> prev kanji
+          <b-col md="2" class="kanji-card_prev" @click="$emit('goToKanji', prevKanji)">
+            <b-icon-chevron-double-left></b-icon-chevron-double-left> prev kanji <strong>{{prevKanji.kanji}}</strong>
           </b-col>
           <b-col md="2">
             <h1 class="kanji">{{kanji.kanji}}</h1>
@@ -21,11 +21,11 @@
               <p>stroke_count: {{kanji.stroke_count}}</p>
             </div>
             <div v-else-if="kanji.loading">
-              Loading...
+              <b-spinner></b-spinner>
             </div>
           </b-col>
-          <b-col md="2" class="kanji-card_next" @click="$emit('goNext')">
-            next kanji <b-icon-chevron-double-right></b-icon-chevron-double-right>
+          <b-col md="2" class="kanji-card_next" @click="$emit('goToKanji', nextKanji)">
+            <strong>{{nextKanji.kanji}}</strong> next kanji <b-icon-chevron-double-right></b-icon-chevron-double-right>
           </b-col>
         </b-row>
       </b-container>
@@ -37,12 +37,10 @@
 <script>
   export default {
     props: {
-      kanji: Object
+      kanji: Object,
+      prevKanji: Object,
+      nextKanji: Object
     },
-    created() {
-      console.log(this.kanji)
-    },
-
   }
 </script>
 

@@ -2,9 +2,6 @@ import Kanji from './Kanji'
 import cache from '../cache';
 import CONFIG from '../config';
 
-function capitalize(str) {
-  return `${str[0].toUpperCase()}${str.slice(1)}`;
-}
 
 export default class KanjiGroup {
   label = ''
@@ -17,20 +14,19 @@ export default class KanjiGroup {
 
   models = []
 
+  count = 0
+
   error = null
 
-  #promise = null;
-
-  constructor(label) {
-    this.label = label;
-    this.name = capitalize(label).replace('-', ' ');
-    this.load();
+  constructor(data = {}) {
+    this.materialize(data);
   }
 
   serialize() {
-    const { label, loaded, custom, models = [] } = this;
+    const { label, name, loaded, custom, models = [] } = this;
     return {
       label,
+      name,
       loaded,
       custom,
       models: models.map(model => model.kanji || model)
@@ -38,29 +34,18 @@ export default class KanjiGroup {
   }
 
   materialize(data) {
-    const { label, custom, models = [] } = data;
+    const { label, name, custom, models = [] } = data;
     this.label = label;
-    this.custom = custom;
-    this.setModels(models);
-  }
-
-  async load() {
-    if (!this.#promise) {
-      this.#promise = await cache.init();
-
-      const data = await cache.getGroup(this.label);
-
-      if (data) {
-        this.materialize(data);
-      } else {
-        await this.fetchKanji();
-        cache.putGroup(this.serialize());
-      }
+    this.name = name;
+    this.custom = !!custom;
+    if (models.length) {
+      this.setModels(models);
+    } else if (!this.custom) {
+      this.fetchModels();
     }
-    return this.#promise;
   }
 
-  async fetchKanji() {
+  async fetchModels() {
     var data;
 
     if (this.label.indexOf('jlpt-') === 0) {
@@ -72,18 +57,16 @@ export default class KanjiGroup {
         const response = await fetch(url);
         data = await response.json();
       } catch (e) {
-        this.error = e.message;
-        return Promise.resolve();
+        return this.error = e.message;
       }
     }
 
     this.setModels(data);
-    return Promise.resolve();
+    cache.putGroup(this.serialize());
   }
 
   setModels(models) {
     this.models = models.map(kanji => new Kanji(kanji));
-    this.loaded = !!models.length;
     this.count = models.length;
   }
 
@@ -100,6 +83,10 @@ export default class KanjiGroup {
 
   indexOf(model) {
     return this.models.indexOf(model);
+  }
+
+  findKanji(sign) {
+    return this.models.find(kanji => kanji.kanji === sign);
   }
 
   async loadModel(model) {

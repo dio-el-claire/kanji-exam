@@ -56,12 +56,20 @@ class Cache {
     return Promise.resolve(kanji);
   }
 
+  async putGroups(groups) {
+    return Promise.all(groups.map(g => this.putGroup(g)));
+  }
+
   async putGroup(data) {
     await this.db.put(this.types.GROUP.label, data);
   }
 
   async putKanji(data) {
     await this.db.put(this.types.KANJI.label, data);
+  }
+
+  async deleteGroup(label) {
+    return this.db.delete(this.types.GROUP.label, label);
   }
 }
 
