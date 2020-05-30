@@ -21,7 +21,7 @@ const SANITAIZERS = {
 const FILTERS = {
   on: val => val,
   kun: val => val.indexOf('-') == -1,
-  meanings: val => val.indexOf('.') !== val.length - 1
+  meanings: val => val.indexOf('.') === - 1
 };
 
 const createVariant = (val, isCorrect) => {
@@ -38,15 +38,14 @@ const createInValidVariant = val => createVariant(val, false);
 
 class KanjiExamTicket {
   kanji = null;
-  variants = [];
+  static variants = [];
   kunReadings = {selected: [], options: []};
   onReadings = {selected: [], options: []};
   meanings = {selected: [], options: []};
   complete = false;
 
-  constructor(kanji, variants) {
+  constructor(kanji) {
     this.kanji = kanji;
-    this.variants = variants;
     this.init();
   }
 
@@ -77,7 +76,7 @@ class KanjiExamTicket {
   }
 
   getIncorrect(type, correct) {
-    return this.variants[type]
+    return KanjiExamTicket.variants[type]
       .filter(val => !correct.includes(val))
       .slice(0, correct.length + randomInteger(1, 5)).map(createInValidVariant);
   }
@@ -107,6 +106,7 @@ export default class KanjiExam {
   ticket = null;
   ready = false;
   variants = {};
+  history = [];
 
   constructor(group) {
     this.group = group;
@@ -129,15 +129,16 @@ export default class KanjiExam {
 
     await Promise.all(variants.map(kanji => kanji.load()));
 
-    let vars = variants.reduce((acc, k) => acc.concat(k.on_readings), []);
-    this.variants.on = [...new Set(vars)];
+    const ons = variants.reduce((acc, k) => acc.concat(k.on_readings), []);
+    const kuns = variants.reduce((acc, k) => acc.concat(k.kun_readings), []);
+    const meanings = variants.reduce((acc, k) => acc.concat(k.meanings), []);
 
-    vars = variants.reduce((acc, k) => acc.concat(k.kun_readings), []);
-    this.variants.kun = [...new Set(vars)].filter(v => v.indexOf('-') === -1).map(v => v.replace('.', ''));
+    KanjiExamTicket.variants = {
+      on: [...new Set(ons)],
+      kun: [...new Set(kuns)].filter(FILTERS.kun).map(SANITAIZERS.kun),
+      meanings: [...new Set(meanings)].filter(FILTERS.meanings)
+    };
 
-    vars = variants.reduce((acc, k) => acc.concat(k.meanings), []);
-    this.variants.meanings = [...new Set(vars)].filter(v => v.indexOf('.') !== v.length - 1);
-    console.log(this.variants)
     this.next();
     this.ready = true;
   }
@@ -146,16 +147,17 @@ export default class KanjiExam {
     const ndx = this.ticket ? this.group.indexOf(this.ticket.kanji) + 1 : 0;
 
     if (ndx < this.group.models.length) {
-      this.ticket = new KanjiExamTicket(this.group.models[ndx], this.variants);
+      this.ticket = new KanjiExamTicket(this.group.models[ndx]);
     }
   }
 
   completeTicket() {
     this.ticket.validate();
+    this.history.push(this.ticket);
     if (this.group.indexOf(this.ticket.kanji) === this.group.count - 1) {
       this.ticket = null;
       this.complete = true;
     }
-    console.log(this.ticket)
+    console.log(this.history)
   }
 }
