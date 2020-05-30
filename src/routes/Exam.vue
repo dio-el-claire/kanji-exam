@@ -1,23 +1,15 @@
 <template>
   <b-container id="exam-select">
-    <h2>Exam {{group.name}}</h2>
+    <b-row style="margin-top: 1.2em">
+      <b-col><h4>Exam {{group.name}}</h4></b-col>
+    </b-row>
+    <hr>
     <b-row>
-      <!-- {{ticket}} -->
-
-      <b-col v-if="exam.ready">
-        <h1>{{ticket.kanji.kanji}}</h1>
-        <b-form-group label="Kun readings:">
-          <b-form-checkbox
-            v-for="option in ticket.kunReadings.options"
-            v-model="ticket.kunReadings.selected"
-            :key="option.value"
-            :value="option.value"
-            :state="option.isValid"
-            name="kun-readings">
-              {{option.text}}
-          </b-form-checkbox>
-        </b-form-group>
-
+      <b-col><h1 style="text-align:center;" v-if="exam.ready">{{ticket.kanji.kanji}}</h1></b-col>
+    </b-row>
+    <hr>
+    <b-row v-if="exam.ready">
+      <b-col>
         <b-form-group label="On readings:">
           <b-form-checkbox
             v-for="option in ticket.onReadings.options"
@@ -29,7 +21,21 @@
               {{option.text}}
           </b-form-checkbox>
         </b-form-group>
-
+      </b-col>
+      <b-col>
+        <b-form-group label="Kun readings:">
+          <b-form-checkbox
+            v-for="option in ticket.kunReadings.options"
+            v-model="ticket.kunReadings.selected"
+            :key="option.value"
+            :value="option.value"
+            :state="option.isValid"
+            name="kun-readings">
+              {{option.text}}
+          </b-form-checkbox>
+        </b-form-group>
+      </b-col>
+      <b-col>
         <b-form-group label="Meanings:">
           <b-form-checkbox
             v-for="option in ticket.meanings.options"
@@ -41,11 +47,14 @@
               {{option.text}}
           </b-form-checkbox>
         </b-form-group>
-
-        <b-form-group>
+      </b-col>
+    </b-row>
+    <hr>
+    <b-row v-if="exam.ready">
+      <b-col>
+        <b-form-group class="float-right" style="margin-top: 0.5em">
           <b-button v-if="ticket.complete" variant="success"  @click="exam.next()">Next</b-button>
           <b-button v-else-if="!exam.complete" variant="success"  @click="exam.completeTicket()">Done</b-button>
-
         </b-form-group>
       </b-col>
     </b-row>
