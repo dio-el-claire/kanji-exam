@@ -1,14 +1,14 @@
 <template>
   <div id="kanji-group">
-    <group-selector v-if="selectedGroup" :groups="groups" :selectedGroup="selectedGroup" :selectGroup="selectGroup">
-
-      <div class="float-right">
-        <b-nav-form @submit.stop.prevent="createCustomGroup">
-          <b-form-input aria-label="Input" class="mr-1" v-model="newGroupName" placeholder="New group"></b-form-input>
-          <b-button type="submit" variant="info" :disabled="!newGroupName">Create group</b-button>
-          <b-button type="submit" variant="danger"  v-if="selectedGroup.custom" @click.prevent="deleteCustomGroup()" style="margin-left: 4px">Delete group</b-button>
-        </b-nav-form>
-      </div>
+    <group-selector v-if="selectedGroup"
+      :groups="groups"
+      :selectedGroup="selectedGroup"
+      :customGroups="customGroups"
+      :selectGroup="selectGroup"
+      :createCustomGroup="createCustomGroup"
+      :deleteCustomGroup="deleteCustomGroup"
+      :addKanjiToGroup="addKanjiToGroup"
+      :selectedKanjiCount="selectedKanji.length">
     </group-selector>
     <div id="kanji-group_view">
       <b-container v-if="selectedGroup">
@@ -31,7 +31,14 @@
             <div v-else-if="models.length" class="container-fluid group-container">
               <div class="row">
                 <div v-for="(kanji, i) in models" :key="i" class="col-auto" @click="goToKanji(kanji)">
-                  <group-item :kanji="kanji"/>
+                  <group-item
+                    :kanji="kanji"
+                    :selectedKanji="selectedKanji"
+                    :allowSelect="!!customGroups.length"
+                    :allowDelete="selectedGroup.custom"
+                    :selectKanji="selectKanji"
+                    :unselectKanji="unselectKanji"
+                    :deleteKanji="deleteKanjiFromGroup" />
                 </div>
               </div>
             </div>
@@ -75,7 +82,8 @@ export default {
     return {
       groups: kanjiCollection.groups,
       itemsPerPage: PAGINATION_LIMIT,
-      newGroupName: ''
+      newGroupName: '',
+      selectedKanji: []
     }
   },
 
@@ -120,12 +128,28 @@ export default {
       this.$router.push({ name: 'group', params: { id, page } });
     },
 
-    createCustomGroup() {
-      kanjiCollection.createCustomGroup(this.newGroupName)
+    createCustomGroup(name) {
+      kanjiCollection.createCustomGroup(name);
     },
     deleteCustomGroup() {
       kanjiCollection.deleteCustomGroup(this.selectedGroup);
       this.$router.push({ name: 'group', params: { id: 'grade-1', page: 1 } });
+    },
+    selectKanji(kanji) {
+      if (!this.selectedKanji.find(k => k.kanji === kanji.kanji)) {
+        this.selectedKanji.push(kanji);
+      }
+    },
+    unselectKanji(kanji) {
+      const ndx = this.selectedKanji.indexOf(kanji);
+      this.selectedKanji.splice(ndx, 1);
+    },
+    addKanjiToGroup(group) {
+      group.addModels(this.selectedKanji);
+      this.selectedKanji = [];
+    },
+    deleteKanjiFromGroup(kanji) {
+      this.selectedGroup.deleteModel(kanji);
     }
   },
   computed: {
@@ -155,6 +179,9 @@ export default {
         return this.getKanjiAtIndex(this.selectedGroup.indexOf(this.kanji) - 1);
       }
       return null;
+    },
+    customGroups() {
+      return kanjiCollection.groups.filter(group => group.custom);
     },
     totalPages() {
       return Math.ceil(this.selectedGroup.models.length / CONFIG.ITEMS_PER_PAGE);
