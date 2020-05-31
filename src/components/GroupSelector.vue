@@ -4,7 +4,6 @@
       <b-nav>
         <b-nav-form>
           <div>
-            Select kanji group:
             <b-dropdown id="kanji-group-selector-dropdown" :text="selectedGroup.name + ' (' + selectedGroup.count + ')'" class="m-md-2">
               <b-dropdown-item-button v-for="group in groups" :key="group.label" :active="group.label === selectedGroup.label" @click="selectGroup(group)">
                 <div>{{group.name}} <b-badge class="float-right" variant="info">{{group.models.length}}</b-badge></div>
@@ -85,6 +84,9 @@
 
 #kanji-group-selector-dropdown {
   min-width: 130px;
+}
 
+#kanji-group-selector-dropdown .dropdown-menu {
+  min-width: 14rem;
 }
 </style>

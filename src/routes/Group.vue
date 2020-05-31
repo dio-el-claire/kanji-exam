@@ -14,6 +14,21 @@
       <b-container v-if="selectedGroup">
         <b-row>
           <b-col v-show="!kanji">
+            <div class="float-right" style="cursor: pointer">
+              <div v-if="selectedKanji.length" @click.stop="unselectAll()">
+                <b-icon-check-all  />
+                unselect all
+              </div>
+              <div v-else-if="models.length" @click.stop="selectAll()">
+                <b-icon-check-all  />
+                select all
+              </div>
+              <div v-if="selectedGroup.custom && selectedKanji.length" @click="deleteSelected()">
+                <b-icon-trash />
+                delete selected
+              </div>
+            </div>
+
             <pagination v-if="models.length" v-model="$route.params.page" :limit=itemsPerPage :linkGen="linkGen" :total="totalPages" />
           </b-col>
         </b-row>
@@ -135,8 +150,12 @@ export default {
       kanjiCollection.deleteCustomGroup(this.selectedGroup);
       this.$router.push({ name: 'group', params: { id: 'grade-1', page: 1 } });
     },
+    isSelected(kanji) {
+      return !!this.selectedKanji.find(k => k.kanji === kanji.kanji)
+    },
     selectKanji(kanji) {
-      if (!this.selectedKanji.find(k => k.kanji === kanji.kanji)) {
+
+      if (!this.isSelected(kanji)) {
         this.selectedKanji.push(kanji);
       }
     },
@@ -150,6 +169,16 @@ export default {
     },
     deleteKanjiFromGroup(kanji) {
       this.selectedGroup.deleteModel(kanji);
+    },
+    selectAll() {
+      this.models.forEach(this.selectKanji, this);
+    },
+    unselectAll() {
+      this.selectedKanji = [];
+    },
+    deleteSelected() {
+      this.selectedKanji.forEach(this.selectedGroup.deleteModel, this.selectedGroup);
+      this.unselectAll();
     }
   },
   computed: {

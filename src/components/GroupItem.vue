@@ -7,7 +7,7 @@
       v-model="checked"
       :value="kanji.kanji"
       @change="onChange" />
-    <span ref="trash">
+    <span>
       <b-icon-trash v-if="allowDelete" @click.stop="deleteKanji(kanji)" />
     </span>
 
