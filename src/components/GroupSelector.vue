@@ -17,7 +17,7 @@
           <b-button type="submit" variant="danger"  v-if="selectedGroup.custom" @click.prevent="deleteCustomGroup()" style="margin-left: 4px">Delete group</b-button>
         </b-nav-form>
         <b-nav-form style="flex-grow:1"></b-nav-form>
-        <b-nav-form v-if="selectedKanjiCount && customGroups.length" @submit.stop.prevent="addKanjiToGroup(groupToAdd)" style="flex-grow:1;">
+        <b-nav-form v-if="selectedKanjiesCount && customGroups.length" @submit.stop.prevent="addKanjiToGroup(groupToAdd)" style="flex-grow:1;">
           <b-button type="submit" variant="info">Add kanji to group:</b-button>
           <b-dropdown right :text="groupToAdd.name" variant="primary" class="m-2">
             <b-dropdown-item v-for="group in customGroups" :key="group.label" @click.prevent="groupToAdd=group">
@@ -40,7 +40,7 @@
       createCustomGroup: Function,
       deleteCustomGroup: Function,
       addKanjiToGroup: Function,
-      selectedKanjiCount: Number
+      selectedKanjiesCount: Number
     },
     data() {
       return {

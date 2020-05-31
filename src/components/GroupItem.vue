@@ -2,14 +2,18 @@
 <div class="kanji-list-item" @click="onclick">
   <h3 class="kanji">{{kanji.kanji}}</h3>
   <div v-if="kanji.loaded">
-    {{kanji.meanings[0]}}
-    <b-form-checkbox v-if="allowSelect" ref="checkbox"
-      v-model="checked"
-      :value="kanji.kanji"
-      @change="onChange" />
-    <span>
-      <b-icon-trash v-if="allowDelete" @click.stop="deleteKanji(kanji)" />
-    </span>
+    <div>{{kanji.meanings[0]}}</div>
+    <div>
+      <div class="float-right" v-if="allowDelete">
+        <b-icon-trash  @click.stop="deleteKanji(kanji)" />
+      </div>
+      <div class="float-left">
+        <b-form-checkbox v-if="allowSelect" ref="checkbox"
+          v-model="checked"
+          :value="kanji.kanji"
+          @change="onChange" />
+      </div>
+    </div>
 
   </div>
   <div v-else>
@@ -22,7 +26,7 @@
 export default {
   props: {
     kanji: Object,
-    selectedKanji: Array,
+    selectedKanjies: Array,
     allowSelect: Boolean,
     allowDelete: Boolean,
     selectKanji: Function,
@@ -39,7 +43,6 @@ export default {
   },
   methods: {
     onChange(value) {
-      console.log(this.checked)
       if (value) {
         this.selectKanji(this.kanji);
       } else {
@@ -52,7 +55,7 @@ export default {
       }
     },
     checkSelected() {
-      if (this.selectedKanji.find(k => k.kanji === this.kanji.kanji)) {
+      if (this.selectedKanjies.find(k => k.kanji === this.kanji.kanji)) {
         this.checked.push(this.kanji.kanji);
       } else {
         this.checked.pop();
@@ -60,7 +63,7 @@ export default {
     }
   },
   watch: {
-    selectedKanji() {
+    selectedKanjies() {
       this.checkSelected();
     }
 

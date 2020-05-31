@@ -8,14 +8,14 @@
       :createCustomGroup="createCustomGroup"
       :deleteCustomGroup="deleteCustomGroup"
       :addKanjiToGroup="addKanjiToGroup"
-      :selectedKanjiCount="selectedKanji.length">
+      :selectedKanjiesCount="selectedKanjies.length">
     </group-selector>
     <div id="kanji-group_view">
       <b-container v-if="selectedGroup">
         <b-row>
           <b-col v-show="!kanji">
             <div class="float-right" style="cursor: pointer">
-              <div v-if="selectedKanji.length" @click.stop="unselectAll()">
+              <div v-if="selectedKanjies.length" @click.stop="unselectAll()">
                 <b-icon-check-all  />
                 unselect all
               </div>
@@ -23,7 +23,7 @@
                 <b-icon-check-all  />
                 select all
               </div>
-              <div v-if="selectedGroup.custom && selectedKanji.length" @click="deleteSelected()">
+              <div v-if="selectedGroup.custom && selectedKanjies.length" @click="deleteSelected()">
                 <b-icon-trash />
                 delete selected
               </div>
@@ -48,7 +48,7 @@
                 <div v-for="(kanji, i) in models" :key="i" class="col-auto" @click="goToKanji(kanji)">
                   <group-item
                     :kanji="kanji"
-                    :selectedKanji="selectedKanji"
+                    :selectedKanjies="selectedKanjies"
                     :allowSelect="!!customGroups.length"
                     :allowDelete="selectedGroup.custom"
                     :selectKanji="selectKanji"
@@ -98,7 +98,7 @@ export default {
       groups: kanjiCollection.groups,
       itemsPerPage: PAGINATION_LIMIT,
       newGroupName: '',
-      selectedKanji: []
+      selectedKanjies: []
     }
   },
 
@@ -151,21 +151,21 @@ export default {
       this.$router.push({ name: 'group', params: { id: 'grade-1', page: 1 } });
     },
     isSelected(kanji) {
-      return !!this.selectedKanji.find(k => k.kanji === kanji.kanji)
+      return !!this.selectedKanjies.find(k => k.kanji === kanji.kanji)
     },
     selectKanji(kanji) {
 
       if (!this.isSelected(kanji)) {
-        this.selectedKanji.push(kanji);
+        this.selectedKanjies.push(kanji);
       }
     },
     unselectKanji(kanji) {
-      const ndx = this.selectedKanji.indexOf(kanji);
-      this.selectedKanji.splice(ndx, 1);
+      const ndx = this.selectedKanjies.indexOf(kanji);
+      this.selectedKanjies.splice(ndx, 1);
     },
     addKanjiToGroup(group) {
-      group.addModels(this.selectedKanji);
-      this.selectedKanji = [];
+      group.addModels(this.selectedKanjies);
+      this.selectedKanjies = [];
     },
     deleteKanjiFromGroup(kanji) {
       this.selectedGroup.deleteModel(kanji);
@@ -174,10 +174,10 @@ export default {
       this.models.forEach(this.selectKanji, this);
     },
     unselectAll() {
-      this.selectedKanji = [];
+      this.selectedKanjies = [];
     },
     deleteSelected() {
-      this.selectedKanji.forEach(this.selectedGroup.deleteModel, this.selectedGroup);
+      this.selectedKanjies.forEach(this.selectedGroup.deleteModel, this.selectedGroup);
       this.unselectAll();
     }
   },
