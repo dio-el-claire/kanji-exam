@@ -24,8 +24,19 @@ export default {
 </script>
 
 <style>
+@font-face {
+    font-family: 'sawarabi_minchoregular', sans-serif;
+    src: url('./assets/fonts/sawarabimincho-regular-webfont.woff2') format('woff2'),
+         url('./assets/fonts/sawarabimincho-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.kanji {
+  font-family: 'sawarabi_minchoregular';
+}
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'sawarabi_minchoregular', Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;

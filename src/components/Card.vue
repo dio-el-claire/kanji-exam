@@ -4,10 +4,10 @@
       <b-container>
         <b-row>
           <b-col md="2" class="kanji-card_prev" @click="$emit('goToKanji', prevKanji)">
-            <b-icon-chevron-double-left></b-icon-chevron-double-left> prev kanji <strong>{{prevKanji.kanji}}</strong>
+            <b-icon-chevron-double-left></b-icon-chevron-double-left> prev kanji <strong class="kanji">{{prevKanji.kanji}}</strong>
           </b-col>
           <b-col md="2">
-            <h1 class="kanji">{{kanji.kanji}}</h1>
+            <h1 class="kanji kanji-card_kanji">{{kanji.kanji}}</h1>
             <h2 v-if="kanji.loaded">{{kanji.meanings[0]}}</h2>
           </b-col>
           <b-col md="6" class="kanji-card_content">
@@ -25,7 +25,7 @@
             </div>
           </b-col>
           <b-col md="2" class="kanji-card_next" @click="$emit('goToKanji', nextKanji)">
-            <strong>{{nextKanji.kanji}}</strong> next kanji <b-icon-chevron-double-right></b-icon-chevron-double-right>
+            <strong class="kanji">{{nextKanji.kanji}}</strong> next kanji <b-icon-chevron-double-right></b-icon-chevron-double-right>
           </b-col>
         </b-row>
       </b-container>
@@ -59,8 +59,8 @@
   .kanji-card_next, .kanji-card_prev {
     cursor: pointer;
   }
-  .kanji {
-    font-size: 5.2em;
-    font-family: "Hiragino Mincho", "MS Mincho", "Yu Mincho", "Hiragino Sans", "Hiragino Kaku Gothic Pro", "Yu Gothic", "MS Gothic",  "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+  .kanji-card_kanji {
+    font-weight: bold;
+    font-size: 6.5em
   }
 </style>

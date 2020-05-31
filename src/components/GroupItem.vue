@@ -1,6 +1,6 @@
 <template>
 <div class="kanji-list-item">
-  <h3>{{kanji.kanji}}</h3>
+  <h3 class="kanji">{{kanji.kanji}}</h3>
   <div v-if="kanji.loaded">{{kanji.meanings[0]}}</div>
   <div v-else>
     <b-spinner small label="Loading..."></b-spinner>
@@ -24,5 +24,11 @@ export default {
     max-width: 160px;
     width: 160px;
     min-height: 100px;
+    text-align: center;
+  }
+
+  .kanji-list-item .kanji {
+    font-weight: bold;
+    font-size: 2em;
   }
 </style>
