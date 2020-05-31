@@ -165,7 +165,8 @@ export default {
     },
     addKanjiToGroup(group) {
       group.addModels(this.selectedKanjies);
-      this.selectedKanjies = [];
+      this.selectedKanjies.splice(0);
+      console.log('->', this.selectedKanjies)
     },
     deleteKanjiFromGroup(kanji) {
       this.selectedGroup.deleteModel(kanji);

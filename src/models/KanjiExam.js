@@ -114,8 +114,8 @@ export default class KanjiExam {
   }
 
   async init() {
-    await this.group.load();
-    let kanjies = kanjiCollection.getGroup('jinmeiyo').models;
+    // await this.group.load();
+    let kanjies = kanjiCollection.groups['jinmeiyo'].models;
 
     let min = randomInteger(0, kanjies.length - 1);
     let max;

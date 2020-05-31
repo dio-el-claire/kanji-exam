@@ -66,7 +66,12 @@ class KanjiCollection {
   }
 
   createCustomGroup(name) {
-    const group = new KanjiGroup({ label: uuidv4(), name, custom: true });
+    const group = new KanjiGroup({
+      label: uuidv4(),
+      name,
+      custom: true,
+      loaded: true
+    });
     this.groups.push(group);
     cache.putGroup(group);
   }

@@ -56,7 +56,7 @@ export default {
     },
     checkSelected() {
       if (this.selectedKanjies.find(k => k.kanji === this.kanji.kanji)) {
-        this.checked.push(this.kanji.kanji);
+        this.checked = [this.kanji.kanji];
       } else {
         this.checked.pop();
       }

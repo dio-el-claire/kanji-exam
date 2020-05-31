@@ -68,15 +68,24 @@
   export default {
     data() {
       return {
-        exam: null,
-        group: null
+        // exam: null,
+        // group: null
       }
     },
     created() {
-      this.group = kanjiCollection.getGroup(this.$route.params.groupId);
-      this.exam = new KanjiExam(this.group);
+      // this.group = kanjiCollection.groups[this.$route.params.groupId];
+      // console.log(this.group)
+      // this.exam = new KanjiExam(this.group);
     },
     computed: {
+      group() {
+        const groupId = this.$route.params.groupId;
+        return kanjiCollection.groups.find(group => group.label === groupId);
+      },
+      exam() {
+        console.log(this.group)
+        return this.group.loaded ? new KanjiExam(this.group) : null;
+      },
       ticket() {
         console.log(this.exam.ticket)
         return this.exam.ticket;
