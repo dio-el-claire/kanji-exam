@@ -8,8 +8,6 @@ export default class KanjiGroup {
 
   name = ''
 
-  loaded = false
-
   custom = false
 
   models = []
@@ -23,11 +21,10 @@ export default class KanjiGroup {
   }
 
   serialize() {
-    const { label, name, loaded, custom, models = [] } = this;
+    const { label, name, custom, models = [] } = this;
     return {
       label,
       name,
-      loaded,
       custom,
       models: models.map(model => model.kanji || model)
     };
@@ -40,7 +37,7 @@ export default class KanjiGroup {
     this.custom = !!custom;
     if (models.length) {
       this.setModels(models);
-    } else if (!this.custom) {
+    } else {
       this.fetchModels();
     }
   }
@@ -50,19 +47,18 @@ export default class KanjiGroup {
 
     if (this.label.indexOf('jlpt-') === 0) {
       data = CONFIG[this.label.toUpperCase()];
-    } else {
+    } else if (!this.custom) {
       const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.label}`;
 
       try {
         const response = await fetch(url);
         data = await response.json();
+        this.setModels(data);
+        this.save();
       } catch (e) {
         return this.error = e.message;
       }
     }
-
-    this.setModels(data);
-    this.save();
   }
 
   setModels(models) {
@@ -72,7 +68,7 @@ export default class KanjiGroup {
 
   slice(start, end) {
     const models = this.models.slice(start, end).map(model => {
-      if (!model.loaded && !model.loading) {
+      if (!model.loading) {
         this.loadModel(model);
       }
       return model;

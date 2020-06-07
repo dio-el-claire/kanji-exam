@@ -63,8 +63,8 @@
                 {{selectedGroup.error}}
               </div>
             </div>
-            <div v-else-if="selectedGroup.loading" class="spinner-border spinner-border-sm" role="status">
-              <span class="sr-only">Loading...</span>
+            <div v-else-if="selectedGroup.loading">
+              <b-spinner class="kanji-group-spinner" label="Large Spinner"></b-spinner>
             </div>
           </b-col>
         </b-row>

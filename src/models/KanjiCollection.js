@@ -18,16 +18,22 @@ function capitalize(str) {
 
 class KanjiCollection {
   groups = []
+  #promise = null;
 
   constructor() {
     this.init();
   }
 
   async init() {
-    const loaded = await this.loadGroups();
-    if (!loaded) {
-      this.createGroups();
+    if (!this.#promise) {
+      this.#promise = this.loadGroups();
+      const loaded = await this.#promise;
+      console.log('loaded ->', loaded)
+      if (!loaded) {
+        this.createGroups();
+      }
     }
+    return this.#promise;
   }
 
   async findKanji(symbol) {

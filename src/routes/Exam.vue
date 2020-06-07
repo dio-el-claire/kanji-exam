@@ -1,93 +1,63 @@
 <template>
   <b-container id="exam-select">
     <b-row style="margin-top: 1.2em">
-      <b-col><h4>Exam {{group.name}}</h4></b-col>
+      <b-col v-if="group.name"><h5>Exam group "{{group.name}}"</h5></b-col>
     </b-row>
-    <hr>
-    <b-row>
-      <b-col><h1 style="text-align:center;" v-if="exam.ready">{{ticket.kanji.kanji}}</h1></b-col>
-    </b-row>
-    <hr>
-    <b-row v-if="exam.ready">
-      <b-col>
-        <b-form-group label="On readings:">
-          <b-form-checkbox
-            v-for="option in ticket.onReadings.options"
-            v-model="ticket.onReadings.selected"
-            :key="option.value"
-            :value="option.value"
-            :state="option.isValid"
-            name="on-readings">
-              {{option.text}}
-          </b-form-checkbox>
-        </b-form-group>
-      </b-col>
-      <b-col>
-        <b-form-group label="Kun readings:">
-          <b-form-checkbox
-            v-for="option in ticket.kunReadings.options"
-            v-model="ticket.kunReadings.selected"
-            :key="option.value"
-            :value="option.value"
-            :state="option.isValid"
-            name="kun-readings">
-              {{option.text}}
-          </b-form-checkbox>
-        </b-form-group>
-      </b-col>
-      <b-col>
-        <b-form-group label="Meanings:">
-          <b-form-checkbox
-            v-for="option in ticket.meanings.options"
-            v-model="ticket.meanings.selected"
-            :key="option.value"
-            :value="option.value"
-            :state="option.isValid"
-            name="meanings">
-              {{option.text}}
-          </b-form-checkbox>
-        </b-form-group>
-      </b-col>
-    </b-row>
-    <hr>
-    <b-row v-if="exam.ready">
-      <b-col>
-        <b-form-group class="float-right" style="margin-top: 0.5em">
-          <b-button v-if="ticket.complete" variant="success"  @click="exam.next()">Next</b-button>
-          <b-button v-else-if="!exam.complete" variant="success"  @click="exam.completeTicket()">Done</b-button>
-        </b-form-group>
-      </b-col>
-    </b-row>
+    <template v-if="ticket && ticket.kanji">
+      <b-row>
+        <b-col><h1 style="text-align:center;" class="kanji">{{ticket.kanji.kanji}}</h1></b-col>
+      </b-row>
+      <hr>
+      <ticket :questions="ticket.questions" :disabled="ticket.complete" />
+      <hr>
+      <b-row>
+        <b-col>
+          <b-form-group class="float-right" style="margin-top: 0.5em">
+            <template v-if="ticket.complete">
+              <b-button v-if="ticket.isLast" variant="success"  @click="exam.createStat()">Show results</b-button>
+              <b-button v-else variant="success"  @click="exam.next()">Next</b-button>
+            </template>
+            <b-button v-else variant="success"  @click="exam.completeTicket()">Done</b-button>
+          </b-form-group>
+        </b-col>
+      </b-row>
+    </template>
+    <template v-else-if="exam.complete">
+      <exam-stat :stat="exam.stat"/>
+    </template>
+    <template v-else>
+      <b-row>
+        <b-col>
+          <b-spinner class="kanji-group-spinner" label="Large Spinner"></b-spinner>
+        </b-col>
+      </b-row>
+    </template>
   </b-container>
 </template>
 
 <script>
   import kanjiCollection from '../models/KanjiCollection';
   import KanjiExam from '../models/KanjiExam';
-
+  import Ticket from '../components/Ticket';
+  import ExamStat from '../components/ExamStat';
   export default {
     data() {
       return {
-        // exam: null,
+        groups: kanjiCollection.groups,
+        exam: null,
         // group: null
       }
     },
-    created() {
-      // this.group = kanjiCollection.groups[this.$route.params.groupId];
-      // console.log(this.group)
-      // this.exam = new KanjiExam(this.group);
+    async created() {
+      this.exam = new KanjiExam(this.$route.params.groupId);
+      await this.exam.init();
     },
     computed: {
       group() {
         const groupId = this.$route.params.groupId;
-        return kanjiCollection.groups.find(group => group.label === groupId);
-      },
-      exam() {
-        console.log(this.group)
-        return this.group.loaded ? new KanjiExam(this.group) : null;
+        return this.groups.find(group => group.label === groupId) || {};
       },
       ticket() {
-        console.log(this.exam.ticket)
         return this.exam.ticket;
       },
       completeEnabled() {
@@ -99,9 +69,9 @@
     },
     methods: {
       completeTicket() {
-        console.log('completeTicket')
         this.exam.completeTicket()
       }
-    }
+    },
+    components: { Ticket, ExamStat }
   }
 </script>

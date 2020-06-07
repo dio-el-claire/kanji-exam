@@ -2,8 +2,6 @@ import CONFIG from '../config';
 import cache from '../cache';
 
 export default class Kanji {
-  loaded = false
-  loading = false
   kanji = ''
   grade = null
   meanings = []
@@ -34,12 +32,11 @@ export default class Kanji {
     Object.keys(this.attrs).forEach(attr => {
       this[attr] = data[attr] || this.attrs[attr];
     });
-    this.loaded = !!this.meanings.length;
     return this;
   }
 
   serialize() {
-    const data = { loaded: this.loaded };
+    const data = { };
     Object.keys(this.attrs).forEach(attr => {
       data[attr] = this[attr];
     });
@@ -47,18 +44,16 @@ export default class Kanji {
   }
 
   async fetch() {
-    this.loading = true;
     const url = `${CONFIG.BASE_URL}/${CONFIG.KANJI_PATH}/${this.kanji}`;
     const response = await fetch(url);
     const data = await response.json();
     this.materialize(data);
-    this.loading = false;
+    cache.putKanji(this.serialize());
     return Promise.resolve(this);
   }
 
   async load() {
-    console.log('load', this.kanji)
-    if (this.loaded) {
+    if (this.meanings.length) {
       return Promise.resolve(this);
     }
     let data = await cache.getKanji(this.kanji);

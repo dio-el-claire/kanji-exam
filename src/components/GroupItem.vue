@@ -1,7 +1,7 @@
 <template>
 <div class="kanji-list-item" @click="onclick">
   <h3 class="kanji">{{kanji.kanji}}</h3>
-  <div v-if="kanji.loaded">
+  <div v-if="kanji.meanings">
     <div>{{kanji.meanings[0]}}</div>
     <div>
       <div class="float-right" v-if="allowDelete">
@@ -14,7 +14,6 @@
           @change="onChange" />
       </div>
     </div>
-
   </div>
   <div v-else>
     <b-spinner small label="Loading..."></b-spinner>
