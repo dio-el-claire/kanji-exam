@@ -5,6 +5,8 @@ import store from './store'
 
 Vue.config.productionTip = false
 
+store.dispatch('LOAD_KANJI_GROUPS')
+
 new Vue({
   router,
   store,
