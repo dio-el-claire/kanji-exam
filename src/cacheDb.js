@@ -75,7 +75,6 @@ class Cache {
   }
 
   async putAllGroups (groups) {
-    console.log('groups', groups)
     return Promise.all(groups.map(g => this.putGroup(g)))
   }
 }

@@ -24,11 +24,10 @@ async function loadKanjiGroups () {
   const kanjies = await loadKanjies()
   let groups = await cacheDb.getGroups()
 
-  if (!groups) {
+  if (!groups.length) {
     groups = await createGroups()
     cacheDb.putAllGroups(groups)
   }
-  console.log(kanjies, groups)
 
   groups.forEach(g => {
     g.kanjies = g.id === 'all'

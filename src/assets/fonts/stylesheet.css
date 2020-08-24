@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'Sawarabi Mincho';
+    src: url('SawarabiMincho-Regular.eot');
+    src: local('Sawarabi Mincho'), local('SawarabiMincho-Regular'),
+        url('SawarabiMincho-Regular.eot?#iefix') format('embedded-opentype'),
+        url('SawarabiMincho-Regular.woff2') format('woff2'),
+        url('SawarabiMincho-Regular.woff') format('woff'),
+        url('SawarabiMincho-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
