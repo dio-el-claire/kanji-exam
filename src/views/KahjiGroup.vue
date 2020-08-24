@@ -25,17 +25,17 @@
       <div v-if="kanji">
         <KanjiCard :kanji="kanji"></KanjiCard>
         <span class="kanji-nav kanji-nav-prev pagination is-rounded">
-          <a href="#" class="pagination-link pagination-previous">
+          <a href="#" @click.prevent="goToKanji(prevKanji)" class="pagination-link pagination-previous">
             <span class="icon">
               <i class="mdi mdi-chevron-left mdi-24px"></i>
             </span>
-            1
+            <span class="kanji">{{prevKanji.sign}}</span>
           </a>
         </span>
         <span class="kanji-nav kanji-nav-next pagination is-rounded">
-          <a href="#" class="pagination-link pagination-previous">
+          <a href="#" @click.prevent="goToKanji(nextKanji)" class="pagination-link pagination-previous">
             <span class="icon">
-              2
+              <span class="kanji">{{nextKanji.sign}}</span>
               <i class="mdi mdi-chevron-right mdi-24px"></i>
             </span>
           </a>
@@ -93,6 +93,9 @@ export default {
       get() { return parseInt(this.$route.params.page) },
       set(val) { this.goTo(this.$route.params.id, val) }
     },
+    totalPages() {
+      return Math.ceil(this.selectedGroup.kanjies.length / ITEMS_PER_PAGE)
+    },
     totalKanjies () {
       return this.selectedGroup.kanjies.length
     },
@@ -114,7 +117,14 @@ export default {
       return sign && kanjies.length
         ? kanjies.find(k => k.sign === sign)
         : null
+    },
+    nextKanji() {
+      return this.siblingKanji('next')
+    },
+    prevKanji() {
+      return this.siblingKanji('prev')
     }
+
   },
   methods: {
     isFirstCustomGroup(group) {
@@ -135,9 +145,24 @@ export default {
       this.goTo(id, page)
     },
     showKanji(kanji) {
-      console.log('showKanji', kanji.sign)
       const { id, page } = this.$route.params
       this.goTo(id, page, kanji.sign)
+    },
+    siblingKanji(direction = 'next') {
+      const kanjies = this.selectedGroup.kanjies
+      const step = direction === 'next' ? 1 : -1
+      let ndx = kanjies.indexOf(this.kanji) + step
+      if (ndx < 0) {
+        ndx = kanjies.length - 1
+      } else if (ndx >= kanjies.length) {
+        ndx = 0
+      }
+      return kanjies[ndx]
+    },
+    goToKanji(kanji) {
+      const ndx = this.selectedGroup.kanjies.indexOf(kanji)
+      const page = Math.ceil((ndx + 1) / ITEMS_PER_PAGE)
+      this.goTo(this.$route.params.id, page, kanji.sign)
     }
   },
   components: { KanjiesList, KanjiCard }
