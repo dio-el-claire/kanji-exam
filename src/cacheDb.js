@@ -56,6 +56,11 @@ class Cache {
     return kanjies
   }
 
+  async getKanji(id) {
+    const kanji = await this.db.get(this.types.KANJI.label, id)
+    return kanji
+  }
+
   async putKanji (data) {
     return this.db.put(this.types.KANJI.label, data)
   }
@@ -76,6 +81,15 @@ class Cache {
 
   async putAllGroups (groups) {
     return Promise.all(groups.map(g => this.putGroup(g)))
+  }
+
+  async getExamConfigs () {
+    const configs = await this.db.getAll(this.types.EXAM.label)
+    return configs
+  }
+
+  async putExamConfig(data) {
+    return this.db.put(this.types.EXAM.label, data)
   }
 }
 

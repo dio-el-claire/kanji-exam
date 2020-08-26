@@ -27,6 +27,16 @@ const routes = [
     path: '/groups/:id/:page/:kanji?',
     name: 'KanjiGroup',
     component: () => import(/* webpackChunkName: "KanjiGroup" */ '../views/KahjiGroup.vue')
+  },
+  {
+    path: '/exam',
+    name: 'ExamSelector',
+    component: () => import(/* webpackChunkName: "ExamSelector" */ '../views/ExamSelector.vue')
+  },
+  {
+    path: '/exam/:id',
+    name: 'Exam',
+    component: () => import(/* webpackChunkName: "Exam" */ '../views/Exam.vue')
   }
 ]
 

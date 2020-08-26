@@ -7,6 +7,7 @@ import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
 import '@mdi/font/css/materialdesignicons.css'
 import './assets/fonts/stylesheet.css'
+import './assets/styles/spinner.css'
 
 Vue.use(Buefy)
 

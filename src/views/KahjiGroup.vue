@@ -1,6 +1,6 @@
 <template>
   <div id="kanji-group">
-    <b-navbar :transparent="true" :shadow="true" :spaced="true">
+    <b-navbar :transparent="true" :shadow="true" :spaced="true" id="kanji-group-nav">
       <template slot="start">
         <b-navbar-item>
           <b-dropdown v-model="selectedGroup">
@@ -40,12 +40,9 @@
             </span>
           </a>
         </span>
-
-        <div style="text-align: center; margin-top: 2rem">
-          <a @click.prevent="returnToGroup">Return to group</a>
-        </div>
       </div>
-      <KanjiesList v-else :kanjies="visibleKanjies" :showKanji="showKanji"></KanjiesList>
+      <KanjiesList v-else-if="visibleKanjies.length" :kanjies="visibleKanjies" :showKanji="showKanji"></KanjiesList>
+      <Spinner v-else></Spinner>
       <b-pagination v-if="selectedGroup.kanjies.length" v-show="!kanji"
           :total="totalKanjies"
           :current.sync="currentPage"
@@ -71,6 +68,7 @@ import { mapState } from 'vuex'
 import { ITEMS_PER_PAGE } from '@/config'
 import KanjiesList from '@/components/KanjiesList'
 import KanjiCard from '@/components/KanjiCard'
+import Spinner from '@/components/Spinner'
 
 export default {
   data () {
@@ -140,7 +138,7 @@ export default {
       }
       this.$router.push({ name: 'KanjiGroup', params })
     },
-    returnToGroup() {
+    closeKanjiCard() {
       const { id, page } = this.$route.params
       this.goTo(id, page)
     },
@@ -165,20 +163,29 @@ export default {
       this.goTo(this.$route.params.id, page, kanji.sign)
     }
   },
-  components: { KanjiesList, KanjiCard }
+  components: { KanjiesList, KanjiCard, Spinner }
 }
 </script>
 
 <style media="screen">
   #kanji-group {
-    background-color: rgba(0, 0, 0, 0.008)
+    /* background-color: rgba(0, 0, 0, 0.008) */
+  }
+
+  #kanji-group-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 50px;
   }
   .dropdown-content .nav-custom-group:first {
     border-top: 1px solid #000;
   }
   .kanji-group-container {
     position: relative;
-    padding: 1rem 0;
+    padding: calc(50px + 1rem) 0 1rem 0;
+    height: 100%;
   }
   .kanji-group-content {
     flex-wrap: wrap;
@@ -194,13 +201,14 @@ export default {
     padding: 1rem;
     border: 2px solid rgba(10, 10, 10, .2);
     border-radius: 6px;
-    background-color: #fff;
+    /* background-color: #fff; */
+    background-color: rgba(0, 0, 0, 0.008);
     cursor: pointer;
   }
 
   .kanji-nav {
     position: absolute;
-    top: calc(50% - 50px);
+    top: 280px;
   }
   .kanji-nav-prev {
     left: 3rem;

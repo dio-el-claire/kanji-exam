@@ -2,7 +2,7 @@ const BASE_URL = 'https://kanjiapi.dev/v1'
 const KANJI_PATH = 'kanji'
 const READING_PATH = 'reading'
 const WORDS_PATH = 'words'
-const ITEMS_PER_PAGE = 20
+const ITEMS_PER_PAGE = 10
 const DB_NAME = 'kanjiApp'
 const DB_VERSION = 1
 const TYPES = {
@@ -14,7 +14,8 @@ const TYPES = {
       { name: 'kun_readings', options: { multiEntry: true } },
       { name: 'on_readings', options: { multiEntry: true } }
     ]
-  }
+  },
+  EXAM: { label: 'exam', key: 'id', indexes: [] }
 }
 
 const JLPT = {

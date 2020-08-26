@@ -1,7 +1,8 @@
 import store from '@/store'
 import { camelCase } from 'lodash'
 import cacheDb from '@/cacheDb'
-import { BASE_URL, KANJI_PATH } from '@/config'
+import Word from '@/models/Word'
+import { BASE_URL, KANJI_PATH, WORDS_PATH } from '@/config'
 
 class Kanji {
   sign = ''
@@ -13,6 +14,7 @@ class Kanji {
   jlpt = null
   strokeCount = null
   unicode = null
+  words = []
 
   static attrs = {
     sign: '',
@@ -64,6 +66,18 @@ class Kanji {
     data.sign = data.kanji
     this.materialize(data)
     cacheDb.putKanji(this.serialize())
+    return data
+  }
+
+  async loadWords() {
+    this.words.loading = true
+    const url = `${BASE_URL}/${WORDS_PATH}/${this.sign}`
+    const response = await fetch(url)
+    const data = await response.json()
+    this.words = data
+      .map(wordData => new Word(wordData))
+      .sort((w1, w2) => w1.written.localeCompare(w2.written))
+    this.words.loading = false
   }
 
   constructor (data) {
