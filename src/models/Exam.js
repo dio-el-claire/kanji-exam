@@ -1,13 +1,15 @@
 import cacheDb from '@/cacheDb'
+import store from '@/store'
 import Kanji from '@/models/Kanji'
+import ExamTicket from '@/models/ExamTicket'
 import { random } from 'lodash'
+import { filterReadings, filterMeanings } from '@/utils'
 
-function filterReadings(value) {
-  return value.indexOf('-') === -1
-}
-
-function filterMeanings(value) {
-  return value.indexOf('(') === -1
+const uniqueKanjiesValues = (kanjies, type) => {
+  const isMeanings = type === 'meanings'
+  const attr = isMeanings ? type : `${type}Readings`
+  const filter = isMeanings ? filterMeanings : filterReadings
+  return [...new Set(kanjies.map(k => k[attr]).flat().filter(filter))]
 }
 
 export default class Exam {
@@ -15,9 +17,25 @@ export default class Exam {
   label = ''
   ready = false
   tickets = []
+  currentTicket = null
+  complete = false
+
+  nextTicket() {
+    let ndx
+    if (!this.currentTicket) {
+      ndx = 0
+    } else {
+      ndx = this.tickets.indexOf(this.currentTicket) + 1
+    }
+    if (this.tickets[ndx]) {
+      this.currentTicket = this.tickets[ndx]
+    } else {
+      this.complete = true
+      this.currentTicket = null
+    }
+  }
 
   async init(kanjies) {
-    console.log('init', this.id, kanjies)
     const kanjiList = []
 
     await cacheDb.ready()
@@ -29,36 +47,44 @@ export default class Exam {
       kanjiList.push(kanji)
     }
 
-    const ons = [...new Set(kanjiList.map(k => k.onReadings).flat().filter(filterReadings))]
-    const kuns = [...new Set(kanjiList.map(k => k.kunReadings).flat().filter(filterReadings))]
-    const meanings = [...new Set(kanjiList.map(k => k.meanings).flat().filter(filterMeanings))]
-    console.log(ons.length)
-    console.log(kuns)
-    console.log(meanings)
+    const ons = uniqueKanjiesValues(kanjiList, 'on')
+    const kuns = uniqueKanjiesValues(kanjiList, 'kun')
+    const meanings = uniqueKanjiesValues(kanjiList, 'meanings')
 
-    const allKanjies = await cacheDb.getAllKanjies()
-    const qnt = kanjiList.length
-    const start = random(0, allKanjies.length - qnt)
-    console.log('start', start, qnt)
-
-    const appendix = allKanjies.slice(start, start + qnt)
-    console.log('appendix', appendix)
+    const kanjiesForQuestions = store.state.kanjiGroups.find(g => g.id === 'joyo').kanjies
+    const total = kanjiesForQuestions.length
+    const offset = kanjiList.length * 10
+    const start = offset >= total ? 0 : random(0, total - offset)
+    const appendix = kanjiesForQuestions.slice(start, start + offset)
     const appendixList = []
 
     for (let i = 0; i < appendix.length; i++) {
       const kanji = new Kanji(appendix[i])
       if (!kanji.meanings.length) {
+        // console.log('load', kanji.sign)
         await kanji.load()
       }
       appendixList.push(kanji)
     }
-    console.log('appendixList', appendixList)
-    const wrongOns = [...new Set(appendixList.map(k => k.onReadings).flat().filter(on => !ons.includes(on)))]
-    const wrongKuns = [...new Set(appendixList.map(k => k.kunReadings).flat().filter(kun => !kuns.includes(kun)))]
-    const wrongMeanings = [...new Set(appendixList.map(k => k.meanings).flat().filter(m => !meanings.includes(m)))]
-    console.log('wrongOns', wrongOns)
-    console.log('wrongKuns', wrongKuns)
-    console.log('wrongMeanings', wrongMeanings)
+
+    const wrongAnswers = {
+      ons: uniqueKanjiesValues(appendixList, 'on').filter(on => !ons.includes(on)),
+      kuns: uniqueKanjiesValues(appendixList, 'kun').filter(on => !kuns.includes(on)),
+      meanings: uniqueKanjiesValues(appendixList, 'meanings').filter(on => !meanings.includes(on))
+    }
+
+    this.tickets = ExamTicket.factory(kanjiList, wrongAnswers)
+    this.ready = true
+  }
+
+  serialize() {
+    const result = {
+      currentNdx: this.currentTicket.number - 1,
+      tickets: this.tickets.map(ticket => ticket.serialize()),
+      wrongAnswers: ExamTicket.wrongAnswers
+    }
+
+    return result
   }
 
   constructor(config) {

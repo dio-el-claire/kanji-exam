@@ -1,6 +1,6 @@
 <template>
   <section class="section">
-    <center v-if="showText" class="subtitle">{{ $t('message.loadingKanjiGroups') }}</center>
+    <center v-if="message" class="subtitle">{{ $t(`message.${message}`) }}</center>
     <div class="cssload-loader">
       <div class="cssload-inner cssload-one"></div>
       <div class="cssload-inner cssload-two"></div>
@@ -11,7 +11,7 @@
 <script>
 export default {
   props: {
-    showText: { type: Boolean, default: true }
+    message: { type: String }
   }
 }
 </script>

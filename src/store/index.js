@@ -9,7 +9,8 @@ export default new Vuex.Store({
   state: {
     locale: localStorage.getItem('locale'),
     kanjiGroups: [],
-    examConfig: null
+    examConfig: null,
+    exam: null
   },
 
   getters: {
@@ -29,6 +30,10 @@ export default new Vuex.Store({
     },
     setExamConfig(state, config) {
       state.examConfig = config
+    },
+    setExam(state, exam) {
+      console.log('setExam', exam)
+      state.exam = exam
     }
   },
   actions: {
@@ -38,12 +43,10 @@ export default new Vuex.Store({
       commit('setKanjiGroups', groups)
     },
     SAVE_EXAM_CONFIG({ commit }, config) {
-      console.log(config)
       commit('setExamConfig', config)
       cacheDb.putExamConfig(config)
     },
     async LOAD_EXAM_CONFIG({ commit, state }) {
-      console.log(state.examConfig)
       if (!state.examConfig) {
         const configs = await cacheDb.getExamConfigs()
         if (configs.length) {
@@ -52,5 +55,8 @@ export default new Vuex.Store({
       }
       return state.examConfig
     }
+  },
+  async SAVE_EXAM({ commit, state }, exam) {
+    commit('setExam', exam)
   }
 })
