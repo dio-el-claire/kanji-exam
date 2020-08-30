@@ -12,7 +12,7 @@ class Cache {
 
   _promise = null
 
-  saveAllKanjiesPromise = null
+  saveAllKanjiesPromise = new Promise((resolve) => { })
 
   async init () {
     if (!this._promise) {
@@ -34,7 +34,7 @@ class Cache {
   }
 
   ready () {
-    return Promise.all([this.init(), this.saveAllKanjiesPromise || Promise.resolve()])
+    return this.init()
   }
 
   initDB (db) {
@@ -53,6 +53,7 @@ class Cache {
 
   async getAllKanjies () {
     const kanjies = await this.db.getAll(this.types.KANJI.label)
+    console.log('getAllKanjies')
     return kanjies
   }
 
@@ -67,6 +68,7 @@ class Cache {
 
   async putAllKanjies (kanjies) {
     this.saveAllKanjiesPromise = Promise.all(kanjies.map(k => this.putKanji(k)))
+    console.log('putAllKanjies')
     return this.saveAllKanjiesPromise
   }
 

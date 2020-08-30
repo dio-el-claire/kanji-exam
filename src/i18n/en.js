@@ -22,6 +22,7 @@ export default {
   cancel: 'Cancel',
   startExam: 'Start Exam',
   loadingKanjiGroups: 'Loading Kanji Groups',
+  loadingKanjies: 'Loading kanji',
   or: 'Or',
   prepareExam: 'Prepare exam',
   done: 'Done',

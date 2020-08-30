@@ -56,9 +56,8 @@ class KanjiGroup {
   ]
 
   static async loadGroups() {
-    await cacheDb.ready()
     const allKanjies = await Kanji.loadAllKanjies()
-
+    console.log('allKanjies', allKanjies)
     let groups = await cacheDb.getGroups()
 
     if (!groups.length) {

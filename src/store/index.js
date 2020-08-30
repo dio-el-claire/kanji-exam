@@ -54,9 +54,9 @@ export default new Vuex.Store({
         }
       }
       return state.examConfig
+    },
+    async SAVE_EXAM({ commit, state }, exam) {
+      commit('setExam', exam)
     }
-  },
-  async SAVE_EXAM({ commit, state }, exam) {
-    commit('setExam', exam)
   }
 })

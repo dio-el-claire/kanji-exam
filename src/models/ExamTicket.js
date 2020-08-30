@@ -2,27 +2,28 @@ import { random } from 'lodash'
 import { shuffleArray, filterReadings, filterMeanings } from '@/utils'
 import Kanji from '@/models/Kanji'
 
-const NO_VALUE_CHANCE = 100
+const MIN_ADD_VALUES = 5
+const MAX_ADD_VALUES = 10
+const NO_VALUE_CHANCE = 20
 
 export default class ExamTicket {
-  static wrongAnswers = {
+  static answers = {
     ons: [],
     kuns: [],
     meanings: []
   }
 
-  static factory(kanjies, wrongAnswers) {
-    ExamTicket.wrongAnswers = wrongAnswers
-    console.log(wrongAnswers)
+  static factory(kanjies, answers) {
+    ExamTicket.answers = answers
     return kanjies.map((kanji, i) => new ExamTicket(kanji, i + 1))
   }
 
   static createVariants(values, type) {
-    const wrongAnswers = ExamTicket.wrongAnswers[type]
-    const offset = random(4, Math.max(8, values.length))
-    const start = random(0, wrongAnswers.length - offset)
+    const answers = ExamTicket.answers[type]
+    const offset = random(MIN_ADD_VALUES, Math.max(MAX_ADD_VALUES, values.length))
+    const start = random(0, answers.length - offset)
     const valid = values.filter(type === 'meanings' ? filterMeanings : filterReadings).map(ExamTicket.createValidVariant)
-    const invalid = wrongAnswers.slice(start, start + offset).map(ExamTicket.createInvalidVariant)
+    const invalid = answers.filter(a => !valid.includes(a)).slice(start, start + offset).map(ExamTicket.createInvalidVariant)
     const variants = shuffleArray(valid.concat(invalid))
     if (!valid.length || (type !== 'meanings' && random(0, 100) > 100 - NO_VALUE_CHANCE)) {
       variants.push(ExamTicket.createVariant('no value', !valid.length))

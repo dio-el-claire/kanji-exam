@@ -52,7 +52,10 @@
         </div>
       </div>
     </template>
-    <Spinner v-else message="prepareExam"></Spinner>
+    <template v-else>
+      <Spinner :message="exam && exam.loadPercents > 10 ? 'prepareExam' : 'loadingKanjies'"></Spinner>
+      <b-progress v-if="exam" :value="exam.loadPercents" show-value format="percent"></b-progress>
+    </template>
   </div>
 </template>
 <script>
@@ -105,13 +108,6 @@ export default {
         this.SAVE_EXAM(this.exam.serialize())
       }
       this.exam.nextTicket()
-    }
-  },
-  watch: {
-    'exam.ready'() {
-      if (this.exam.ready) {
-        this.nextTicket()
-      }
     }
   },
   components: { Spinner, ExamCheckboxesGroup }

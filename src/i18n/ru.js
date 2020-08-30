@@ -22,6 +22,7 @@ export default {
   cancel: 'Отмена',
   startExam: 'Начать тест',
   loadingKanjiGroups: 'Загружаем группы иероглифов',
+  loadingKanjies: 'Загружаем иероглифы',
   or: 'или',
   prepareExam: 'Подготавливаем тест',
   done: 'Готово',

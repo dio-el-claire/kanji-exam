@@ -1,8 +1,9 @@
-import cacheDb from '@/cacheDb'
+import Vue from 'vue'
 import store from '@/store'
+import cacheDb from '@/cacheDb'
 import Kanji from '@/models/Kanji'
 import ExamTicket from '@/models/ExamTicket'
-import { random } from 'lodash'
+// import { random, range } from 'lodash'
 import { filterReadings, filterMeanings } from '@/utils'
 
 const uniqueKanjiesValues = (kanjies, type) => {
@@ -19,6 +20,7 @@ export default class Exam {
   tickets = []
   currentTicket = null
   complete = false
+  loadPercents = 0
 
   nextTicket() {
     let ndx
@@ -37,51 +39,54 @@ export default class Exam {
 
   async init(kanjies) {
     const kanjiList = []
+    console.time('init')
+    this.loadPercents = 10
 
-    await cacheDb.ready()
-
+    const delta = kanjies.length * 0.2
     for (let i = 0; i < kanjies.length; i++) {
       const data = await cacheDb.getKanji(kanjies[i])
+      console.timeEnd('init')
       const kanji = new Kanji(data)
-      if (!kanji.meanings.length) await kanji.load()
       kanjiList.push(kanji)
+      this.loadPercents = Math.ceil(this.loadPercents + delta)
     }
 
-    const ons = uniqueKanjiesValues(kanjiList, 'on')
-    const kuns = uniqueKanjiesValues(kanjiList, 'kun')
-    const meanings = uniqueKanjiesValues(kanjiList, 'meanings')
+    const kanjiAnswers = store.state.kanjiGroups.find(g => g.id === 'jlpt-4').kanjies
+    this.loadPercents = 40
+    const notLoadedKanji = kanjiList.concat(kanjiAnswers).filter(k => !k.meanings.length)
+    console.log('notLoadedKanji', notLoadedKanji.length)
 
-    const kanjiesForQuestions = store.state.kanjiGroups.find(g => g.id === 'joyo').kanjies
-    const total = kanjiesForQuestions.length
-    const offset = kanjiList.length * 10
-    const start = offset >= total ? 0 : random(0, total - offset)
-    const appendix = kanjiesForQuestions.slice(start, start + offset)
-    const appendixList = []
+    const l = notLoadedKanji.length
+    if (l) {
+      const total = l + l * 0.6
 
-    for (let i = 0; i < appendix.length; i++) {
-      const kanji = new Kanji(appendix[i])
-      if (!kanji.meanings.length) {
-        // console.log('load', kanji.sign)
-        await kanji.load()
+      for (let i = 0; i < l; i++) {
+        await notLoadedKanji[i].load()
+        const percents = 40 + Math.floor((i * 100) / total)
+        this.loadPercents = percents < 100 ? percents : 100
       }
-      appendixList.push(kanji)
+    } else {
+      this.loadPercents = 80
     }
 
-    const wrongAnswers = {
-      ons: uniqueKanjiesValues(appendixList, 'on').filter(on => !ons.includes(on)),
-      kuns: uniqueKanjiesValues(appendixList, 'kun').filter(on => !kuns.includes(on)),
-      meanings: uniqueKanjiesValues(appendixList, 'meanings').filter(on => !meanings.includes(on))
+    const allKanjies = kanjiList.concat(kanjiAnswers)
+    const answers = {
+      ons: uniqueKanjiesValues(allKanjies, 'on'),
+      kuns: uniqueKanjiesValues(allKanjies, 'kun'),
+      meanings: uniqueKanjiesValues(allKanjies, 'meanings')
     }
 
-    this.tickets = ExamTicket.factory(kanjiList, wrongAnswers)
+    this.loadPercents = 100
+    this.tickets = ExamTicket.factory(kanjiList, answers)
+    this.nextTicket()
     this.ready = true
   }
 
   serialize() {
     const result = {
-      currentNdx: this.currentTicket.number - 1,
+      ticketNumber: this.currentTicket.number,
       tickets: this.tickets.map(ticket => ticket.serialize()),
-      wrongAnswers: ExamTicket.wrongAnswers
+      answers: ExamTicket.answers
     }
 
     return result
@@ -90,6 +95,19 @@ export default class Exam {
   constructor(config) {
     const { id, label, kanjies } = config
     Object.assign(this, { id, label })
-    this.init(kanjies)
+    this.loadPercents = 5
+    if (store.state.kanjiGroups.length) {
+      this.init(kanjies)
+    } else {
+      const self = this
+      this.vm = new Vue({
+        created() {
+          this.$watch(() => store.state.kanjiGroups, (value) => {
+            console.log('groups', value)
+            self.init(kanjies)
+          })
+        }
+      })
+    }
   }
 }
