@@ -4,7 +4,7 @@ const READING_PATH = 'reading'
 const WORDS_PATH = 'words'
 const ITEMS_PER_PAGE = 10
 const DB_NAME = 'kanjiApp'
-const DB_VERSION = 1
+const DB_VERSION = 3
 const TYPES = {
   GROUP: { label: 'group', key: 'id', indexes: [] },
   KANJI: {
@@ -15,7 +15,9 @@ const TYPES = {
       { name: 'on_readings', options: { multiEntry: true } }
     ]
   },
-  EXAM: { label: 'exam', key: 'id', indexes: [] }
+  EXAM_CONFIG: { label: 'examConfig', key: 'id', indexes: [] },
+  EXAM: { label: 'exam', key: 'id', indexes: [] },
+  STAT: { label: 'stat', key: 'id', indexes: [] }
 }
 
 const JLPT = {

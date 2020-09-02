@@ -1,5 +1,11 @@
 <template>
   <div class="container kanji-exam-selector">
+    <center v-if="notFinishedExam" style="padding-top:1rem;">
+      <b-notification type="is-warning" style="width:50%">
+        {{ $t('message.notFinishedExam') }}<br>
+        <router-link :to="`/exam/${notFinishedExam.id}`">{{ $t('message.continueExam') }}: "{{notFinishedExam.label}}"</router-link>
+      </b-notification>
+    </center>
     <template v-if="kanjiGroups.length">
       <section class="section">
         <div class="columns kanji-exam-groups">
@@ -68,11 +74,17 @@ export default {
       ],
       selectedGroup: null,
       level: 'JLPT-5 - JLPT-4',
-      qnt: 10
+      qnt: 10,
+      notFinishedExam: null
     }
   },
-  created() {
+  async created() {
     this.setDefaultGroup()
+    const dump = await this.LOAD_EXAM()
+    if (dump) {
+      const { id, label } = dump
+      this.notFinishedExam = { id, label }
+    }
   },
   computed: {
     ...mapState(['kanjiGroups']),
@@ -80,7 +92,7 @@ export default {
     messageNumber() { return this.$t('message.kanjiNumber') }
   },
   methods: {
-    ...mapActions(['SAVE_EXAM_CONFIG']),
+    ...mapActions(['LOAD_EXAM', 'SAVE_EXAM_CONFIG']),
     start() {
       const { id, label, kanjies: groupKanjies } = this.selectedGroup
       const kanjies = shuffleArray(groupKanjies.map(k => k.sign))

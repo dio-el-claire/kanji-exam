@@ -16,7 +16,7 @@ export default {
   showWords: 'Показать слова',
   hideWords: 'Скрыть слова',
   selectGroupExam: 'Выберите группу иероглифов для теста',
-  configureExam: 'Сгененрируйте тест случайным образом',
+  configureExam: 'Сгенерируйте тест случайным образом',
   examLevel: 'Уровень сложности',
   kanjiNumber: 'Количество иероглифов',
   cancel: 'Отмена',
@@ -24,7 +24,12 @@ export default {
   loadingKanjiGroups: 'Загружаем группы иероглифов',
   loadingKanjies: 'Загружаем иероглифы',
   or: 'или',
+  of: 'из',
   prepareExam: 'Подготавливаем тест',
   done: 'Готово',
-  nextTicket: 'Дальше'
+  nextTicket: 'Дальше',
+  invalidExamConfig: 'Нет такого теста',
+  notFinishedExam: 'У вас есть незаконченый тест.',
+  continueExam: 'Продолжить тест',
+  examResult: 'Результат теста'
 }

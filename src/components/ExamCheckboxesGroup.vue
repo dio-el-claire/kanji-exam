@@ -28,12 +28,18 @@ export default {
       model: []
     }
   },
+  created() {
+    this.setModel()
+  },
   computed: {
     items() {
       return this.$parent.exam.currentTicket.questions[this.type]
     }
   },
   methods: {
+    setModel() {
+      this.model = this.$parent.exam.currentTicket.answers[this.type]
+    },
     onClick(e) {
       if (this.disabled) {
         e.preventDefault()
@@ -43,7 +49,7 @@ export default {
   },
   watch: {
     items() {
-      this.model = []
+      this.setModel()
     }
   }
 }

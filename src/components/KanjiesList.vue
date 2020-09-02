@@ -1,7 +1,7 @@
 <template>
   <div class="tile is-ancestor">
     <div class="tile is-parent is-12 kanji-group-content">
-      <article v-for="kanji in kanjies" :key="kanji.sign"  class="tile is-child kanji-box _box">
+      <article v-for="kanji in kanjies" :key="kanji.sign"  class="tile is-child kanji-box">
         <div class="kanji-card-small" @click="showKanji(kanji)">
           <p class="title kanji">{{kanji.sign}}</p>
           <div v-if="kanji.isLoaded">

@@ -12,8 +12,6 @@ class Cache {
 
   _promise = null
 
-  saveAllKanjiesPromise = new Promise((resolve) => { })
-
   async init () {
     if (!this._promise) {
       this._promise = openDB(this.name, this.version, {
@@ -40,20 +38,17 @@ class Cache {
   initDB (db) {
     Object.keys(this.types).forEach(type => {
       const label = this.types[type].label
-      if (db.objectStoreNames.contains(label)) {
-        db.deleteObjectStore(label)
+      if (!db.objectStoreNames.contains(label)) {
+        const objStore = db.createObjectStore(label, { keyPath: this.types[type].key })
+        this.types[type].indexes.forEach(ndx => {
+          objStore.createIndex(ndx.name, ndx.name, ndx.options)
+        })
       }
-
-      const objStore = db.createObjectStore(label, { keyPath: this.types[type].key })
-      this.types[type].indexes.forEach(ndx => {
-        objStore.createIndex(ndx.name, ndx.name, ndx.options)
-      })
     })
   }
 
   async getAllKanjies () {
     const kanjies = await this.db.getAll(this.types.KANJI.label)
-    console.log('getAllKanjies')
     return kanjies
   }
 
@@ -67,9 +62,7 @@ class Cache {
   }
 
   async putAllKanjies (kanjies) {
-    this.saveAllKanjiesPromise = Promise.all(kanjies.map(k => this.putKanji(k)))
-    console.log('putAllKanjies')
-    return this.saveAllKanjiesPromise
+    return Promise.all(kanjies.map(k => this.putKanji(k)))
   }
 
   async getGroups () {
@@ -85,13 +78,38 @@ class Cache {
     return Promise.all(groups.map(g => this.putGroup(g)))
   }
 
-  async getExamConfigs () {
-    const configs = await this.db.getAll(this.types.EXAM.label)
-    return configs
+  async getExamConfig () {
+    const configs = await this.db.getAll(this.types.EXAM_CONFIG.label)
+    return configs.length ? configs[0] : null
   }
 
   async putExamConfig(data) {
+    return this.db.put(this.types.EXAM_CONFIG.label, data)
+  }
+
+  async getExam () {
+    const exams = await this.db.getAll(this.types.EXAM.label)
+    return exams.length ? exams[0] : null
+  }
+
+  async putExam(data) {
     return this.db.put(this.types.EXAM.label, data)
+  }
+
+  async clearExam() {
+    return Promise.all([
+      this.db.clear(this.types.EXAM_CONFIG.label),
+      this.db.clear(this.types.EXAM.label)
+    ])
+  }
+
+  async putStat(data) {
+    return this.db.put(this.types.STAT.label, data)
+  }
+
+  async getAllStat () {
+    const stat = await this.db.getAll(this.types.STAT.label)
+    return stat
   }
 }
 

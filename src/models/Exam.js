@@ -3,7 +3,6 @@ import store from '@/store'
 import cacheDb from '@/cacheDb'
 import Kanji from '@/models/Kanji'
 import ExamTicket from '@/models/ExamTicket'
-// import { random, range } from 'lodash'
 import { filterReadings, filterMeanings } from '@/utils'
 
 const uniqueKanjiesValues = (kanjies, type) => {
@@ -34,27 +33,31 @@ export default class Exam {
     } else {
       this.complete = true
       this.currentTicket = null
+      store.dispatch('CLEAR_EXAM')
+      store.dispatch('SAVE_STAT', this.getStat())
     }
   }
 
   async init(kanjies) {
     const kanjiList = []
-    console.time('init')
     this.loadPercents = 10
 
     const delta = kanjies.length * 0.2
     for (let i = 0; i < kanjies.length; i++) {
       const data = await cacheDb.getKanji(kanjies[i])
-      console.timeEnd('init')
       const kanji = new Kanji(data)
       kanjiList.push(kanji)
       this.loadPercents = Math.ceil(this.loadPercents + delta)
     }
 
-    const kanjiAnswers = store.state.kanjiGroups.find(g => g.id === 'jlpt-4').kanjies
+    const answersLoaded = !!ExamTicket.answers.ons.length
+    const kanjiAnswers = answersLoaded
+      ? []
+      : store.state.kanjiGroups.find(g => g.id === 'jlpt-4').kanjies
     this.loadPercents = 40
-    const notLoadedKanji = kanjiList.concat(kanjiAnswers).filter(k => !k.meanings.length)
-    console.log('notLoadedKanji', notLoadedKanji.length)
+    const notLoadedKanji = kanjiList
+      .concat(kanjiAnswers)
+      .filter(k => !k.meanings.length)
 
     const l = notLoadedKanji.length
     if (l) {
@@ -69,11 +72,14 @@ export default class Exam {
       this.loadPercents = 80
     }
 
-    const allKanjies = kanjiList.concat(kanjiAnswers)
-    const answers = {
-      ons: uniqueKanjiesValues(allKanjies, 'on'),
-      kuns: uniqueKanjiesValues(allKanjies, 'kun'),
-      meanings: uniqueKanjiesValues(allKanjies, 'meanings')
+    let answers
+    if (!answersLoaded) {
+      const allKanjies = kanjiList.concat(kanjiAnswers)
+      answers = {
+        ons: uniqueKanjiesValues(allKanjies, 'on'),
+        kuns: uniqueKanjiesValues(allKanjies, 'kun'),
+        meanings: uniqueKanjiesValues(allKanjies, 'meanings')
+      }
     }
 
     this.loadPercents = 100
@@ -83,8 +89,13 @@ export default class Exam {
   }
 
   serialize() {
+    const { id, label, currentTicket: { number }, ready, complete } = this
     const result = {
-      ticketNumber: this.currentTicket.number,
+      id,
+      label,
+      number,
+      ready,
+      complete,
       tickets: this.tickets.map(ticket => ticket.serialize()),
       answers: ExamTicket.answers
     }
@@ -92,10 +103,43 @@ export default class Exam {
     return result
   }
 
-  constructor(config) {
+  materialize(data) {
+    const {
+      id,
+      label,
+      number,
+      tickets,
+      answers
+    } = data
+
+    this.loadPercents = 50
+    Object.assign(this, { id, label })
+    if (answers) ExamTicket.answers = answers
+    this.tickets = ExamTicket.restore(tickets)
+    this.currentTicket = this.tickets.find(t => t.number === number)
+    this.ready = true
+    return this
+  }
+
+  getStat() {
+    const { id, label } = this
+    return {
+      id,
+      label,
+      date: (new Date()).toISOString(),
+      kanjies: this.tickets.map(t => t.getStat())
+    }
+  }
+
+  constructor(config, dump) {
+    this.loadPercents = 5
+
+    if (dump) {
+      return this.materialize(dump)
+    }
     const { id, label, kanjies } = config
     Object.assign(this, { id, label })
-    this.loadPercents = 5
+
     if (store.state.kanjiGroups.length) {
       this.init(kanjies)
     } else {
@@ -103,7 +147,6 @@ export default class Exam {
       this.vm = new Vue({
         created() {
           this.$watch(() => store.state.kanjiGroups, (value) => {
-            console.log('groups', value)
             self.init(kanjies)
           })
         }

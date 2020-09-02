@@ -1,10 +1,11 @@
 <template>
   <div class="container kanji-exam">
     <template v-if="exam && exam.ready">
+      <p class="subtitle">Exam: {{exam.label}}</p>
       <div v-if="exam.currentTicket" class="card kanji-exam-ticket">
         <div class="card-header">
           <span class="ticket-counter">
-            {{exam.currentTicket.number}} of {{exam.tickets.length}}
+            {{exam.currentTicket.number}} {{ $t('message.of') }} {{exam.tickets.length}}
           </span>
           <p class="card-header-title is-size-1 kanji">
             <span :class="`${highlightClass} kanji-highlight`">
@@ -46,11 +47,7 @@
           </b-button>
         </div>
       </div>
-      <div v-else>
-        <div v-for="(ticket, i) in exam.tickets" :key="`ticket${i}`" style="display:inline-block">
-          <span :class="ticket.isValid ? 'has-text-success' : 'has-text-danger'">ticket.kanji</span>
-        </div>
-      </div>
+      <ExamResult v-else :tickets="exam.tickets"></ExamResult>
     </template>
     <template v-else>
       <Spinner :message="exam && exam.loadPercents > 10 ? 'prepareExam' : 'loadingKanjies'"></Spinner>
@@ -60,9 +57,10 @@
 </template>
 <script>
 import Exam from '@/models/Exam'
-import { mapState, mapActions } from 'vuex'
+import { mapActions } from 'vuex'
 import Spinner from '@/components/Spinner'
 import ExamCheckboxesGroup from '@/components/ExamCheckboxesGroup'
+import ExamResult from '@/components/ExamResult'
 
 export default {
   data() {
@@ -71,11 +69,25 @@ export default {
     }
   },
   async created() {
-    await this.LOAD_EXAM_CONFIG()
-    this.createExam()
+    const config = await this.LOAD_EXAM_CONFIG()
+    const dump = await this.LOAD_EXAM()
+    const id = this.$route.params.id
+    console.log(config, dump)
+    if (!config || config.id !== id || (dump && dump.id !== id)) {
+      if (config || dump) {
+        this.$buefy.toast.open({
+          duration: 3000,
+          message: this.$t('message.invalidExamConfig'),
+          position: 'is-top',
+          type: 'is-danger'
+        })
+      }
+      this.$router.push({ name: 'ExamSelector' })
+    } else {
+      this.exam = new Exam(config, dump)
+    }
   },
   computed: {
-    ...mapState(['examConfig']),
     ticketCanBeDone() {
       const { ons, kuns, meanings } = this.exam.currentTicket.answers
       return ons.length && kuns.length && meanings.length
@@ -88,15 +100,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['LOAD_EXAM_CONFIG', 'SAVE_EXAM']),
-    createExam() {
-      if (this.examConfig && !this.exam) {
-        if (this.$route.params.id !== this.examConfig.id) {
-          return alert('Invalid exam id')
-        }
-        this.exam = new Exam(this.examConfig)
-      }
-    },
+    ...mapActions(['LOAD_EXAM_CONFIG', 'LOAD_EXAM', 'SAVE_EXAM']),
     completeTicket() {
       this.exam.currentTicket.validate()
     },
@@ -110,7 +114,7 @@ export default {
       this.exam.nextTicket()
     }
   },
-  components: { Spinner, ExamCheckboxesGroup }
+  components: { Spinner, ExamCheckboxesGroup, ExamResult }
 }
 </script>
 <style lang="scss">

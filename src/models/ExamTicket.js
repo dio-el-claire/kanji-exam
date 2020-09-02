@@ -14,8 +14,14 @@ export default class ExamTicket {
   }
 
   static factory(kanjies, answers) {
-    ExamTicket.answers = answers
+    if (answers) {
+      ExamTicket.answers = answers
+    }
     return kanjies.map((kanji, i) => new ExamTicket(kanji, i + 1))
+  }
+
+  static restore(dump) {
+    return dump.map(data => new ExamTicket(null, null, data))
   }
 
   static createVariants(values, type) {
@@ -69,21 +75,47 @@ export default class ExamTicket {
   }
 
   serialize() {
-    const { kanji, questions, answers, number } = this
+    const { kanji, questions, answers, number, complete, isValid } = this
     return {
       kanji: kanji.serialize(),
       questions,
       answers,
-      number
+      number,
+      complete,
+      isValid
     }
   }
 
   materialize(data) {
     Object.assign(this, data)
     this.kanji = new Kanji(this.kanji)
+    return this
   }
 
-  constructor(kanji, number) {
+  getStat() {
+    return {
+      kanji: this.kanji.sign,
+      results: {
+        ons: {
+          success: this.questions.ons.filter(q => q.isValid).map(q => q.value),
+          failed: this.questions.ons.filter(q => q.isValid === false).map(q => q.value)
+        },
+        kuns: {
+          success: this.questions.kuns.filter(q => q.isValid).map(q => q.value),
+          failed: this.questions.kuns.filter(q => q.isValid === false).map(q => q.value)
+        },
+        meanings: {
+          success: this.questions.meanings.filter(q => q.isValid).map(q => q.value),
+          failed: this.questions.meanings.filter(q => q.isValid === false).map(q => q.value)
+        }
+      }
+    }
+  }
+
+  constructor(kanji, number, dump) {
+    if (dump) {
+      return this.materialize(dump)
+    }
     this.kanji = kanji
     this.number = number
     this.complete = false

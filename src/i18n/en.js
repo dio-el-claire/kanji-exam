@@ -24,7 +24,12 @@ export default {
   loadingKanjiGroups: 'Loading Kanji Groups',
   loadingKanjies: 'Loading kanji',
   or: 'Or',
+  of: 'of',
   prepareExam: 'Prepare exam',
   done: 'Done',
-  nextTicket: 'Next Ticket'
+  nextTicket: 'Next Ticket',
+  invalidExamConfig: 'No such exam',
+  notFinishedExam: 'Not finished exam was found.',
+  continueExam: 'Continue with exam',
+  examResult: 'Exam result'
 }
